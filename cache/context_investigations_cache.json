@@ -1,0 +1,1052 @@
+{
+  "juice": {
+    "name": "JUICE",
+    "type": "Mission",
+    "description": "JUICE - JUpiter ICy moons Explorer - is the first large-class mission in ESA's Cosmic Vision 2015-2025 programme. The spacecraft was launched on 14th April 2023 from Kourou, French Guyana. The cruise trajectory includes a double Lunar-Earth gravity assist (Aug 2024), a Venus Gravity assist (Aug 2025) and two Earth gravity assist (Sept 2026 and Jan 2029) before entering in orbit around Jupiter in July 2031. It will spend more than 3 years in orbit around Jupiter (tour), making detailed observations of the giant gaseous planet Jupiter and three of its largest moons, Ganymede, Callisto and Europa. In late 2034 it will enter in orbit around Ganymede (Ganymede phase) where it will remain for an additional year. The mission will investigate conditions that may support habitable environments within the satellites, all of which are thought to contain subsurface liquid water oceans. Ganymede, the largest moon in the Solar System, is a prime target due to its internal structure and subsurface ocean, its unique intrinsic magnetic field, and its complex interactions with Jupiter\u2019s magnetosphere, offering a natural laboratory for studying the emergence, evolution and potential habitability of icy worlds around giant planets. JUICE will also conduct a global investigation of the Jupiter system as the archetype for giant planet systems throughout our Universe: it will study Jupiter\u2019s atmospheric circulation, composition, and flow of energy from the cloud tops to the thermosphere, and characterise the 3D structure of the magnetosphere and its coupling with the ionosphere and thermosphere. Interactions between the moons and the magnetosphere, as well as tidal and gravitational evolution within the Galilean system, will also be assessed. Additional targets include the innermost Galilean moon, Io and its plasma torus, the minor and irregular moons, and the ring systems. The payload includes four remote\u2011sensing instruments (UVS, SWI, JANUS and MAJIS), three geophysical packages (3GM, GALA, RIME), three particles\u2011and\u2011fields instruments (JMAG, PEP, RPWI), and one experiment using the spacecraft\u2019s telecommunications system to connect with ground\u2011based radio telescopes (PRIDE), plus an onboard radiation monitor (RADEM). For more detailed information about the Juice mission, please consult Boutonnet, A., Langevin, Y. and Erd, C. Designing the JUICE Trajectory. Space Sci Rev 220, 67 (2024). https://doi.org/10.1007/s11214-024-01093-y and Witasse, O. et al, The JUpiter ICy moons Explorer (JUICE) mission: post-launch status and mission overview,Space Sci Rev 220, 67 (in prep)",
+    "start_date": "2023-04-14",
+    "stop_date": "3000-01-01"
+  },
+  "exomars 2016": {
+    "name": "ExoMars 2016",
+    "type": "Mission",
+    "description": "ExoMars 2016 Mission Overview ============================= ExoMars 2016 was launched in March 2016 and consists of the Trace Gas Orbiter (TGO) and Schiaparelli, an entry, descent and landing demonstrator module. The primary goal of the mission is to detect trace gasses in the Martian atmosphere in particular to follow up on earlier detections of Methane. Schiaparelli, the technology demonstration lander, did not reach the surface, therefore the only data archived was from the DREAMS instrument, which was obtained during the cruise phase of the mission. The Trace Gas Orbiter (TGO) entered science operations at Mars in April 2018 and has been operating nominally since. It has 4 instruments, CaSSIS, a 4 colour push frame camera, FREND, an epithermal neutron detector, and ACS and NOMAD which are high resolution spectrometers covering the UV to thermal IR range optimised for atmospheric studies. All instruments coninue in good health apart from the Thermal Infrared (TIRVIM) channel on ACS. TIRVIM stopped working on December 3rd, 2019 due to HW failure. Since then it has been kept on to ensure thermal mode of the ACS but without producing science data. Housekeeping data is still being generated and archived as of today. Mission Phases ============== Start Time Acronym Name 2016-03-14T00:00:00.000 necp Near Earth Commissioning 2016-04-17T00:00:00.000 icp Cruise 2016-10-16T00:00:00.000 mamp Mars Approach and Orbit Insertion 2016-10-21T17:53:53.000 maop Mars Arrival Orbit 2017-03-15T11:58:45.000 ap Aerobraking 2018-03-09T03:22:54.000 cvp Commissioning and Verification 2018-04-21T13:49:13.000 psp Science Phase",
+    "start_date": "2016-01-07",
+    "stop_date": "3000-01-01"
+  },
+  "relab spectral library": {
+    "name": "RELAB Spectral Library",
+    "type": "Other Investigation",
+    "description": "The RELAB Spectral Library is a database of reflectance spectra collected by the NASA Relectance Experiment Laboratory, along with ancillary chemistry and image information.",
+    "start_date": "1981-02-10",
+    "stop_date": ""
+  },
+  "bepicolombo": {
+    "name": "BepiColombo",
+    "type": "Mission",
+    "description": "BEPICOLOMBO Mission Overview ============================ BepiColombo is Europe's first mission to Mercury. It has been defined as a collaboration between ESA and the Japan Aerospace Exploration Agency (JAXA), executed under ESA leadership. The mission comprises two spacecraft: the Mercury Planetary Orbiter (MPO), built by ESA, and the Mercury Magnetospheric Orbiter (MMO), built by JAXA, which are dedicated to the detailed study of the planet and its magnetosphere respectively. Their orbits have therefore been optimised accordingly. The ESA-built Mercury Transfer Module (MTM) is carrying both MMO and MPO. The MPO is a three-axis-stabilized and nadir-pointing spacecraft designed for an operational lifetime of one Earth year (with a possible extension of one year). The MPO will be placed in an inertially fixed polar orbit; the spacecraft has one axis aligned with the nadir direction to allow continuous nadir observation of the planet. The MPO\u2019s 2.3-hour low-eccentricity orbit will provide excellent spatial resolution over the entire planet\u2019s surface. The MPO science payload will investigate Mercury\u2019s interior, surface composition and morphology, intrinsic magnetic field, the composition of the exosphere and the coupling between all of these aspects. The MMO is a spin-stabilized spacecraft after it is separated from the MPO following the Mercury orbit insertion. The MMO is optimized for in-situ plasma and electromagnetic fields and waves measurements in Mercury orbit. The MTM provides the acceleration and braking required during Cruise to reach the eventual capture by Mercury and the large amount of power required by the solar electric propulsion system. BepiColombo was launched on 20 October 2018 on an Ariane 5 from Kourou, with arrival to Mercury in November 2026 after several Venus and Mercury flybys. The nominal mission is 1 year with a possible 1-year extension. See instrument context products for more information on the instruments in the PSA bundle, and the BepiColombo bundle for information on the mission phases",
+    "start_date": "2018-10-20",
+    "stop_date": "3000-01-01"
+  },
+  "insight lander": {
+    "name": "InSight Lander",
+    "type": "Mission",
+    "description": "NASA's InSight Lander mission placed a lander on Mars that deployed a seismometer and a heat-flow probe, along with cameras, a magnetometer, a meteorology experiment, and a radio science experiment.",
+    "start_date": "2018-05-05",
+    "stop_date": "2022-12-15"
+  },
+  "kaguya": {
+    "name": "Kaguya",
+    "type": "Mission",
+    "description": "SELENE, Japan's second lunar probe, was renamed Kaguya (Moon Princess) after launch following a public poll. Its mission aimed to orbit the Moon and gather data on its origins, geological evolution, and surface environment, while also conducting radio science experiments. The mission included two small sub-satellites, originally named Relay Satellite (Rstar) and VRAD satellite (Vstar), which were renamed Okina and Ouna, meaning \"honorable elderly man\" and \"honorable elderly woman.\"",
+    "start_date": "2007-09-14",
+    "stop_date": "2009-06-10"
+  },
+  "near earth asteroid scout mission": {
+    "name": "Near Earth Asteroid Scout Mission",
+    "type": "Mission",
+    "description": "The NEAS mission was intended as a technology test/demonstration for developing a CubetSat with a solar sail that could be deployed to Near-Earth Asteroids (NEA). It was one of 10 CubeSats launched on Artemis 1 on 16 November 2022. The mission was lost when no communication could be established with the CubeSat post-launch.",
+    "start_date": "2021-11-23",
+    "stop_date": "3000-01-01"
+  },
+  "osiris-rex": {
+    "name": "OSIRIS-REx",
+    "type": "Mission",
+    "description": "The OSIRIS-REx (Origins, Spectral Interpretation, Resource Identification, Security, Regolith Explorer) mission returned a sample of regolith material from the near-Earth carbonaceous asteroid (101955) Bennu in April 2021. 121.6g of material were successfully returned to earth on 21 September 2023. Following this, the spacecraft was redirected for an extended mission to asteroid (99942) Apophis.",
+    "start_date": "2016-09-08",
+    "stop_date": "3000-01-01"
+  },
+  "venus express": {
+    "name": "Venus Express",
+    "type": "Mission",
+    "description": "Venus Express is ESA's first mission to Venus, launched on November 9, 2005. It used a modified Mars Express spacecraft design and is equipped with upgraded instruments from previous ESA missions. The mission aims to study Venus's atmosphere, plasma environment, and surface in detail. After launching on a Soyuz rocket, Venus Express spent 150 days in interplanetary transfer before entering orbit around Venus on April 11, 2006. The spacecraft's operational orbit is an elliptical quasi-polar orbit with a 24-hour cycle, peaking at 66,000 km and dipping to 250 km. The mission timeline comprised several phases, including pre-launch operations, early orbit, commissioning, and extended mission phases, with a focus on scientific observation. The latter included data collection and transmission related to Venus's atmosphere and surface dynamics over an expected lifespan of nearly 486 days, later extended in phases lasting until 2012. Data acquisition strategies involved various observation modes, including Earth and solar occultations, with specific objectives for each scientific instrument onboard. The mission's extended phases aimed to enhance observational coverage and conduct detailed studies based on prior findings. Overall, Venus Express contributed significantly to Venusian science by providing valuable insights into the planet\u2019s characteristics and dynamics.",
+    "start_date": "2005-11-09",
+    "stop_date": ""
+  },
+  "the ronald greeley 35 mm slide collection": {
+    "name": "The Ronald Greeley 35 mm Slide Collection",
+    "type": "Individual Investigation",
+    "description": "The Ronald Greeley 35 mm Slide Collection consists of 14,435 color and grayscale slides that include images of planetary bodies, missions, and analog sites on Earth as well as presentation materials for research results presented at national conferences.",
+    "start_date": "1968-01-01",
+    "stop_date": "2005-01-01"
+  },
+  "juno": {
+    "name": "Juno",
+    "type": "Mission",
+    "description": "Juno is a spacecraft that was launched on August 5, 2011 and arrived at Jupiter in July 2016. Juno is orbiting Jupiter and its prime mission was 32 high inclination, high eccentricity orbits of the planet, acquiring data at each periapsis for several hours. Juno has been taking measurements to help finding clues about how the planet formed, its composition, including its rocky core, and its atmospheric structure and turbulences. The mission was extended for an additional 40 orbits that should continue until September 2025. These orbits have shorter periods, going from ~43 days to ~38 days, and currently at ~33 days. The reduction in the orbial periods allows Juno to conduct close flybys of Ganymede, Europa, Io, and Jupiter's ring system, as well as gather more information about Jupiter's northern hemisphere.",
+    "start_date": "2011-08-05",
+    "stop_date": ""
+  },
+  "dust devil field campaign, eldorado playa, nevada, 2015": {
+    "name": "Dust Devil Field Campaign, Eldorado Playa, Nevada, 2015",
+    "type": "Field Campaign",
+    "description": "A dust devil field campaign in Eldorado Playa, Nevada conducted over 2012-2013 by Brian Jackson and Ralph Lorenz. The work was published in JGR in 2015. Terrestrial dust devils serve as planetary analogs to dust devils on Mars. The remote meterological stations used in this study provided pressure and temperature data for dust devil encounters in the desert. In some cases measurements of voltage were also acquired.",
+    "start_date": "2012-01-01",
+    "stop_date": "2013-01-01"
+  },
+  "dust devil field campaign, nevada national security site (nnss), nevada, 2019": {
+    "name": "Dust Devil Field Campaign, Nevada National Security Site (NNSS), Nevada, 2019",
+    "type": "Field Campaign",
+    "description": "A dust devil field campaign at the nuclear test stie at the Nevada National Security Site, Nevada conducted over 2019-2023 by Danny Bowman, et al. The work catalogged terrestrial dust devils to serve as planetary analogs to dust devils on Mars. The remote recording stations, consisting of Hyperion IFS-5000 Series Seismically Decoupled Infrasound Sensors (microbarometers), used in this study provided pressure and temperature data for dust devil encounters in the desert.",
+    "start_date": "2012-01-01",
+    "stop_date": "2019-01-01"
+  },
+  "arecibo radar imaging and doppler spectroscopy": {
+    "name": "Arecibo Radar Imaging and Doppler Spectroscopy",
+    "type": "Individual Investigation",
+    "description": "The Arecibo Observatory Planetary Radar system operated from 1963 to 2020, utilizing its 12.6 cm and 70-cm radar systems to study asteroids and planetary surfaces. The investigation includes processed data from Doppler-only spectroscopy and delay-Doppler imaging, primarily focusing on small bodies, but also featuring data from planets and moons. Most of the data was collected after the \"Gregorian Upgrade\" in the late 1990s, as earlier data was often lost or not preserved.",
+    "start_date": "1963-01-01",
+    "stop_date": "2020-01-01"
+  },
+  "b. campbell venus earth-based radar observations": {
+    "name": "B. Campbell Venus Earth-Based Radar Observations",
+    "type": "Individual Investigation",
+    "description": "This investigation acquired Earth-based, polarimetric radar image data of Venus using the Arecibo Observatory 12.6-cm (2380 MHz) transmitter in Puerto Rico and receivers at the Arecibo Observatory and Green Bank Telescope in West Virginia. The archive contains maps of radar backscatter from Venus assembled from individual looks collected in observing runs from 1988 to 2020. Those looks are also archived in delay-Doppler format with the PDS, and the documentation for that archive details the data collection steps (https://pds-geosciences.wustl.edu/missions/venus_radar/index.htm). In all but the 2012 dataset, the echoes were transmitted from and received at the Arecibo Observatory. In 2012 the Green Bank Telescope was used as a receiver. For each observing year with Venus close to inferior conjunction, there are multi-look views of the \"northern\" and \"southern\" hemispheres, defined with respect to the sub-radar point latitude and longitude during the period. All maps are referenced to a 335 E projection longitude. Each map set contains an image in the opposite-sense circular polarization (OCP, sometimes called \"polarized\") and one in the same-sense circular polarization (SCP, sometimes called \"depolarized\"). Spatial sampling is at 1 km per pixel, or about 106 pixels per degree on Venus. The individual looks are normalized to the background noise level such that the OCP and SCP mosaics can be ratioed to obtain the circular polarization ratio (CPR). Offsets of order ten pixels with respect to the Magellan-defined cartographic grid may exist across the images and between observing years.",
+    "start_date": "1988-01-01",
+    "stop_date": "2020-01-01"
+  },
+  "visible to mid-infrared (vmir, ~0.3-6 micrometer) complex refractive indices of carbonates": {
+    "name": "Visible to Mid-Infrared (VMIR, ~0.3-6 micrometer) Complex Refractive Indices of Carbonates",
+    "type": "Individual Investigation",
+    "description": "The visible to mid-infrared (VMIR, ~0.3-6 micrometer) complex refractive indices of the carbonates calcite, dolomite, and magnesite were estimated in this investigation.",
+    "start_date": "2018-01-01",
+    "stop_date": "2019-01-01"
+  },
+  "catalina sky survey": {
+    "name": "Catalina Sky Survey",
+    "type": "Individual Investigation",
+    "description": "The Catalina Sky Survey (CSS) is a NASA funded, ground-based sky survey fully dedicated to the discovery and tracking of near-Earth objects (NEOs).",
+    "start_date": "1998-01-01",
+    "stop_date": ""
+  },
+  "cassini-huygens": {
+    "name": "Cassini-Huygens",
+    "type": "Mission",
+    "description": "Orbiting the ringed planet Saturn and its numerous moons, the Cassini spacecraft was a keystone of exploration of the Saturnian system and the properties of gaseous planets in our solar system. A joint endeavor of NASA, the European Space Agency, or ESA, and the Italian Space Agency, Cassini launched in 1997 along with ESA's Huygens probe. The spacecraft contributed to studies of Jupiter for six months in 2000 before reaching its destination, Saturn, in 2004 and starting a string of flybys of Saturn's moons. That same year it released the Huygens probe on Saturn's moon Titan to conduct a study of the moon's atmosphere and surface composition. In its second extended mission, Cassini made the first observations of a complete seasonal period for Saturn and its moons, flew between the rings and descended into the planet's atmosphere.",
+    "start_date": "1997-10-15",
+    "stop_date": "2017-09-15"
+  },
+  "goldstone raw radar": {
+    "name": "Goldstone Raw Radar",
+    "type": "Individual Investigation",
+    "description": "The Goldstone Solar System Radar (GSSR) is the world's only fully steerable radar capable of high-resolution ranging and imaging of planetary and small-body targets. It enables scientific research on the Moon, planets, and near-Earth objects (NEOs) by providing data on images, topography, surface characteristics, shapes, compositions, and liquid or ice distributions. The radar records complex base-band samples using various receivers, transmitting right circular polarized light while receiving both left and same-sense circular polarizations. The raw data collected can be analyzed to produce frequency spectra or delay-Doppler image maps based on the transmitted waveforms.",
+    "start_date": "1958-01-01",
+    "stop_date": ""
+  },
+  "xas spectra of synthesized glasses": {
+    "name": "XAS Spectra of Synthesized Glasses",
+    "type": "Individual Investigation",
+    "description": "Multivariate techniques were used to enable accurate XAS measurements of Fe, Cr, Mn, and Ti ratios across the whole spectral region through creation of a broad suite of experimentally homogenized glasses of geological relevance for use as XAS standards. Iron, Cr, Mn, and Ti were analyzed as epoxy-mounted polished glass beads using XAS at the GeoSoilEnviroCARS beamline at the Advanced Photon Source, Argonne National Laboratory using a spot size of ca. 1x1 \u03bcm.",
+    "start_date": "2018-02-10",
+    "stop_date": "2019-02-16"
+  },
+  "r. greeley field investigation, amboy crater, california": {
+    "name": "R. Greeley Field Investigation, Amboy Crater, California",
+    "type": "Individual Investigation",
+    "description": "In 1976, Dr. Ronald Greeley and Dr. James Iversen used hand-held cameras to acquire photographs of the volcanic cindercone Amboy Crater and its surrounding lava flows, located in the Mojave Desert of southeast California. These photographs are mostly black and white (but some are color) and were taken at low altitude from a fixed-wing aircraft, on the ground near volcanic outcrops, and of flows from close up. The purpose of the images was to depict volcanic features on Earth that could be studied as an analog to features similar to those found on Mars and the Moon.",
+    "start_date": "1976-01-01",
+    "stop_date": "1976-01-01"
+  },
+  "investigation of laboratory shocked feldspars": {
+    "name": "Investigation of Laboratory Shocked Feldspars",
+    "type": "Individual Investigation",
+    "description": "This investigation consists of data acquired from thin sections created from a suite of experimentally shocked plagioclase feldspars (associated with Jaret et al., 2018), and a basalt and basaltic andesite (associated with Johnson et al., 2020). The data products comprise (1) micro-Fourier Transform Infrared (FTIR) thermal infrared hyperspectral image cubes; (2) thermal infrared point spectra acquired with two different detectors (for the plagioclase samples only); (3) micro-Raman spectra; (4) microscope images of the thin sections in plane polarized and cross polarized light; and (5) microscope images of the locations of the Raman and thermal infrared point spectra. The thermal infrared and Raman spectroscopy demonstrate changes as a function of shock pressure, as detailed in Jaret et al., 2018 and Johnson et al., 2020.",
+    "start_date": "2015-01-01",
+    "stop_date": "2019-01-01"
+  },
+  "acquisition of a multi-parameter libs reference database of geological materials": {
+    "name": "Acquisition of a Multi-Parameter LIBS Reference Database of Geological Materials",
+    "type": "Individual Investigation",
+    "description": "The Mineral Spectroscopy Laboratory at Mount Holyoke College has produced a LIBS spectral library collected on nearly 3000 unique reference targets using four instruments. The purpose of the database is to facilitate high-quality calibration models in future LIBS investigations.",
+    "start_date": "2015-04-14",
+    "stop_date": "2022-10-27"
+  },
+  "lowell observatory near-earth object survey": {
+    "name": "Lowell Observatory Near-Earth Object Survey",
+    "type": "Individual Investigation",
+    "description": "The LONEOS was a 10-year, ground-based program at Lowell Observatory to search for Near Earth Objects. It consisted of two parts, LONEOS-1 spanning 1993-2000, and LONEOS-2, conducted with a more sensitive camera, spanning 2000-2008.",
+    "start_date": "1998-01-01",
+    "stop_date": "2008-01-01"
+  },
+  "frankenspectra database": {
+    "name": "Frankenspectra Database",
+    "type": "Individual Investigation",
+    "description": "The purpose of this investigation was to analyze, using reflectance spectroscopy, 27 fine-particulate (less than 10-um) terrestrial minerals to create a far-UV through MIR single spectrum built from the best pieces of spectra acquired at different U.S. and international labs (i.e., Frankenspectra). Multiple-laboratory spectral comparisons increased confidence in determining both better spectral shapes and overall representative reflectance values by considering the reflectance data of each sample as an ensemble. The four laboratories used to acquire the fine-particulate reflectance spectra included the University of Colorado Laboratory for Atmospheric and Space Physics (LASP, Boulder, CO), the Planetary Science Institute (PSI, Tucson, AZ), the University of Winnipeg's Centre for Terrestrial and Planetary Exploration (C-Tape) Planetary Spectrophotometer Facility (UW, Manitoba, Canada), and the Planetary Emissivity Laboratory (PEL, that performs reflectance measurements as well as emissivity) at the German Aerospace Center (Deutsches Land und Raumfahrt, DLR) in Berlin, Germany.",
+    "start_date": "2018-02-15",
+    "stop_date": "2023-04-13"
+  },
+  "near-earth asteroid tracking": {
+    "name": "Near-Earth Asteroid Tracking",
+    "type": "Individual Investigation",
+    "description": "The NEAT survey discovered and tracked near-Earth asteroids and comets using telescopes in Hawai'i and at Palomar Observatory over the period December 1995 - April 2007.",
+    "start_date": "1996-04-17",
+    "stop_date": "2007-04-15"
+  },
+  "no specific investigation": {
+    "name": "No Specific Investigation",
+    "type": "Individual Investigation",
+    "description": "This context object indicates there is no specific funded investigation associated with the product.",
+    "start_date": "-9999-01-0",
+    "stop_date": ""
+  },
+  "spacewatch research group": {
+    "name": "Spacewatch Research Group",
+    "type": "Individual Investigation",
+    "description": "SPACEWATCH\u00ae is a research group created to explore the various populations of small objects in the solar system and study the statistics of asteroids and comets in order to investigate the dynamical evolution of the solar system.",
+    "start_date": "1980-01-01",
+    "stop_date": ""
+  },
+  "material properties of organic liquids, ices, and hazes on titan": {
+    "name": "Material Properties of Organic Liquids, Ices, and Hazes on Titan",
+    "type": "Individual Investigation",
+    "description": "Titan has a diverse range of materials in its atmosphere and on its surface: the simple organics that reside in various phases (gas, liquid, ice) and the solid complex refractory organics that form Titan's haze layers. These materials all actively participate in various physical processes on Titan, and many material properties are found to be important in shaping these processes. Future in-situ exploration on Titan would likely encounter a range of materials, and a comprehensive database to archive the material properties of all possible material candidates will be needed. Here we summarize several important material properties of the organic liquids, ices, and the refractory hazes on Titan that are available in the literature and/or that we have computed. These properties include thermodynamic properties (phase change points, sublimation and vaporization saturation vapor pressure, and latent heat), physical property (density), and surface properties (liquid surface tensions and solid surface energies). We have developed a new database to provide a repository for these data and make them available to the science community. These data can be used as inputs for various theoretical models to interpret current and future remote sensing and in-situ atmospheric and surface measurements on Titan. The material properties of the simple organics may also be applicable to giant planets and icy bodies in the outer solar system, interstellar medium, protoplanetary disks, and exoplanets.",
+    "start_date": "2022-01-01",
+    "stop_date": "2023-01-01"
+  },
+  "balloon observation platform for planetary science": {
+    "name": "Balloon Observation Platform for Planetary Science",
+    "type": "Mission",
+    "description": "The 2014 BOPPS flight launched from Ft. Sumner, New Mexico at 8L20, and achieved and altitude of 130,000 feet, from which it observed the asteroid (1) Ceres and comets C/2013 A1 (Siding Spring) and C/2014 E2 (Jacques).",
+    "start_date": "2014-09-25",
+    "stop_date": "2014-09-26"
+  },
+  "cross section ir spectroscopy of hydrocarbons in planetary atmospheres": {
+    "name": "Cross Section IR Spectroscopy of Hydrocarbons in Planetary Atmospheres",
+    "type": "Individual Investigation",
+    "description": "Laboratory analysis of hydrocarbon chemistry in analog environments approximating Jupiter, Saturn, and Titan's upper atmospheres.",
+    "start_date": "2018-06-15",
+    "stop_date": ""
+  },
+  "mars odyssey": {
+    "name": "Mars Odyssey",
+    "type": "Mission",
+    "description": "The 2001 Mars Odyssey mission consists of an orbiter that investigates the climate and geology of Mars.",
+    "start_date": "2001-01-04",
+    "stop_date": ""
+  },
+  "apollo 11": {
+    "name": "Apollo 11",
+    "type": "Mission",
+    "description": "NASA's Apollo 11 mission was the first crewed lunar landing and moonwalk. While on the lunar surface, astronauts measured moonquakes, collected a sample of solar wind, deployed a laser retroreflector, collected lunar samples, and performed ceremonial duties.",
+    "start_date": "1969-07-16",
+    "stop_date": "1969-07-24"
+  },
+  "apollo 12": {
+    "name": "Apollo 12",
+    "type": "Mission",
+    "description": "The Apollo 12 was the second mission that allowed humans to walk on the Moon. It consisted of the Command and Service Module (CSM) and the Lunar Module (LM). The CSM took images of the surface and communicated with Earth. The LM carried the Astronauts and Apollo Lunar Surface Experiments Package (ALSEP) to the surface.",
+    "start_date": "1969-11-14",
+    "stop_date": "1969-11-24"
+  },
+  "apollo 14": {
+    "name": "Apollo 14",
+    "type": "Mission",
+    "description": "The Apollo 14 was the third mission that allowed humans to walk on the Moon. It consisted of the Command and Service Module (CSM) and the Lunar Module (LM). The CSM took images of the surface and communicated with Earth. The LM carried the Astronauts and Apollo Lunar Surface Experiments Package (ALSEP) to the surface.",
+    "start_date": "1971-01-31",
+    "stop_date": "1971-02-09"
+  },
+  "apollo 15": {
+    "name": "Apollo 15",
+    "type": "Mission",
+    "description": "The Apollo 15 was the fourth mission that allowed humans to walk on the Moon. It consisted of the Command and Service Module (CSM) and the Lunar Module (LM). The CSM took images of the surface and communicated with Earth. The LM carried the Astronauts and Apollo Lunar Surface Experiments Package (ALSEP) to the surface.",
+    "start_date": "1971-07-26",
+    "stop_date": "1971-08-07"
+  },
+  "apollo 16": {
+    "name": "Apollo 16",
+    "type": "Mission",
+    "description": "The Apollo 16 was the fifth mission that allowed humans to walk on the Moon. It consisted of the Command and Service Module (CSM) and the Lunar Module (LM). The CSM took images of the surface and communicated with Earth. The LM carried the Astronauts and Apollo Lunar Surface Experiments Package (ALSEP) to the surface.",
+    "start_date": "1972-04-16",
+    "stop_date": "1972-04-27"
+  },
+  "apollo 17": {
+    "name": "Apollo 17",
+    "type": "Mission",
+    "description": "The Apollo 17 was the sixth mission that allowed humans to walk on the Moon. It consisted of the Command and Service Module (CSM) and the Lunar Module (LM). The CSM took images of the surface and communicated with Earth. The LM carried the Astronauts and Apollo Lunar Surface Experiments Package (ALSEP) to the surface.",
+    "start_date": "1972-12-07",
+    "stop_date": "1972-12-19"
+  },
+  "europa clipper mission": {
+    "name": "Europa Clipper Mission",
+    "type": "Mission",
+    "description": "NASA's Europa Clipper spacecraft will perform dozens of close flybys of Jupiter's moon Europa, gathering detailed measurements to investigate whether the moon could have conditions suitable for life. Europa Clipper is not a life detection mission - its main science goal is to determine whether there are places below Europa's surface that could support life.",
+    "start_date": "2024-10-14",
+    "stop_date": "2034-09-30"
+  },
+  "clps task order 2ab": {
+    "name": "CLPS Task Order 2AB",
+    "type": "Mission",
+    "description": "The NASA payload suite on Astrobotic Peregrine Mission 1 was slated to provide some of the first measurements from the surface of the Moon since Apollo, but it did not land on the lunar surface due to an anomaly with the propulsion system. The spacecraft was targeting a landing within Sinus Viscositatis in order to provide complementary and meaningful data to NASA\u2019s Lunar-VISE instrument suite, which will land on the nearby Gruithuisen Domes in 2026. The NASA payloads aboard Astrobotic Peregrine 1 were focusing on characterizing the radiation environment in space and on the surface, volatiles present on or near the surface, and surface temperatures and mineralogy. The payload also included the Laser Retroreflector Array (LRA) which could have enabled precise laser ranging from orbiting spacecraft. Because the Peregrine spacecraft never landed on the Moon, all of the data acquired during the mission occurred in cislunar space. This allowed for measurements of the radiation environment experienced by the spacecraft during the mission as well as measurements of volatiles released by the spacecraft during operations and as a result of the anomaly experienced in the propulsion system. Except for the LRA, all other NASA payloads were powered on at various points and collected science data.",
+    "start_date": "2024-01-08",
+    "stop_date": "2024-01-18"
+  },
+  "clps task order 2im": {
+    "name": "CLPS Task Order 2IM",
+    "type": "Mission",
+    "description": "The Intuitive Machines 1 (IM-1, TO2-IM) mission launched a Nova-C lander, called Odyssesus, on Feb 15, 2024. Odyssesus landed on Feb 22, 2024 at (80.13S, 1.44E), about 25km east of the Malapert A crater near the south pole region of the Moon, carrying six NASA payloads and commercial cargo. The scientific objectives of the NASA provided payloads included: studies of plume-surface interactions (SCALPSS), radio astronomy and space weather interactions with the lunar surface (ROLSES), and a laser retroreflector array (LRA). These payloads have archived data in the PDS. Odysseus also carried NASA tech demo payloads to demonstrate precision landing technologies (Navigation Doppler Lidar, NDL), communication and navigation node capabilities (Lunar Node-1, LN-1), and measure the quantity of liquid propellant in micro-gravity environments (Radio Frequency Mass Gauge, RFMG). These payloads have not archived data in the PDS.",
+    "start_date": "2024-02-15",
+    "stop_date": "2024-03-23"
+  },
+  "comet d/1993 f2 (shoemaker-levy 9) collision into jupiter": {
+    "name": "Comet D/1993 F2 (Shoemaker-Levy 9) Collision into Jupiter",
+    "type": "Mission",
+    "description": "The impact of comet D/1993 F2 (Shoemaker-Levy 9), colloquially referred to as \"SL9\", into the planet Jupiter in July 1994 represented the first time in human history that people had discovered a body in the sky and were able to preict its impact on a planet more than a few seconds in advance. The event was observed by both spacecraft and ground-based observatories around the world.",
+    "start_date": "1993-01-01",
+    "stop_date": "1996-01-01"
+  },
+  "comet nucleus tour": {
+    "name": "Comet Nucleus Tour",
+    "type": "Mission",
+    "description": "The Comet Nucleus Tour mission failed when the spacecraft broke apart during a planned maneuver six weeks after launch. No data were returned.",
+    "start_date": "2002-07-05",
+    "stop_date": "2002-08-15"
+  },
+  "dawn mission to vesta and ceres": {
+    "name": "Dawn Mission to Vesta and Ceres",
+    "type": "Mission",
+    "description": "The Dawn mission launched in Sept. 2007 to rendezvous and orbit the asteroid (4) Vesta and the dwarf planet (1) Ceres. Vesta orbit operations took place from July 2011 to Sept. 2012, and Ceres orbit operations from March 2015 to Oct. 2018. The scientific objectives of the mission were to characterize the asteroids' internal structure, density, shape, size, composition and mass and to return data on surface morphology, cratering, and magnetism. Communication with the spacecraft was lost after hydrazine exhaustion in October 2018.",
+    "start_date": "2007-09-27",
+    "stop_date": "2016-07-01"
+  },
+  "deep impact": {
+    "name": "Deep Impact",
+    "type": "Mission",
+    "description": "The Deep Impact mission consisted of an impactor and a fly-by spacecraft that rendezvoused with comet 9P/Tempel 1. The impactor was released to impact the comet surface on July 4 2005, while the flyby spacecraft observed.",
+    "start_date": "2005-01-12",
+    "stop_date": "2005-07-13"
+  },
+  "deep space 1": {
+    "name": "Deep Space 1",
+    "type": "Mission",
+    "description": "The Deep Space 1 mission was a \"new technology\" mission that performed engineering tests of various technologies, including io propulsion and autonomous navigation. It also flew by asteroid (9660) Braille and Comet 19P/Borrelly.",
+    "start_date": "1998-10-24",
+    "stop_date": "2001-12-18"
+  },
+  "deep space program science experiment": {
+    "name": "Deep Space Program Science Experiment",
+    "type": "Mission",
+    "description": "The Deep Space Program Science Experiment (DSPSE), the first in a series of technology demonstrations by the Ballistic Missile Defense Organization (BMDO) and NASA, was launched in 1994. The spacecraft, called Clementine, was expected to be 'lost and gone forever' after its brief mission, similar to the song it was named after.",
+    "start_date": "1991-11-19",
+    "stop_date": "1994-05-07"
+  },
+  "double asteroid redirection test": {
+    "name": "Double Asteroid Redirection Test",
+    "type": "Mission",
+    "description": "The DART mission was a planetary defense and technology demonstration mission that impacted the moon (Dimorphos) of the Didymos asteroid system to measure the effect on the moon's orbit.",
+    "start_date": "1000-01-01",
+    "stop_date": ""
+  },
+  "epoxi": {
+    "name": "EPOXI",
+    "type": "Mission",
+    "description": "\"EPOXI\" is the moniket assigned to the two extended missions for the Deep Impact spacecraft: the Extrasolar Planet Observation and Characterization (EPOCh) Mission, and the Deep Impact Extended Investigation (DIXI) mission. As part of the DIXI mission, the spacecraft flew by Comet 103P/Hartley 2. As part of the EPOCh mission, the spacecraft used the larger of its two telescopes to find extrasolar planets using the transit method.",
+    "start_date": "2007-09-26",
+    "stop_date": "2013-09-20"
+  },
+  "galileo": {
+    "name": "Galileo",
+    "type": "Mission",
+    "description": "The Galileo was sent to Jupiter to study the planet and its moons. It was delivered to space on Space Shuttle Atlantis on October 18, 1989. It sent an atmospheric probe into Jupiter's atmosphere to study the composition.",
+    "start_date": "1977-10-01",
+    "stop_date": "2003-09-21"
+  },
+  "giotto mission": {
+    "name": "Giotto Mission",
+    "type": "Mission",
+    "description": "ESA's Giotto mission was the first European deep-space mission flown. As part of the Hally Armada, Giotto was launched in July of 1985, flew by Halley's Comet on 15 March 1986 at a distance of 596 kilometers - returning the first images of a comet nucleus - and then went on to an extended mission to fly by Comet 26P/Grigg-Skjellerup in July 1992.",
+    "start_date": "1985-07-02",
+    "stop_date": "1992-07-10"
+  },
+  "giotto extended mission": {
+    "name": "Giotto Extended Mission",
+    "type": "Mission",
+    "description": "After encountering Halley's Comet at part of the Halley Armada in March 1986, ESA's Giotto spacecraft hibernated through an extended cruide period on its way to encountering comet 26P/Grigg-Skjellerup. It flew by the comet at a distance of 200km in July 1992.",
+    "start_date": "1990-01-01",
+    "stop_date": "1992-01-01"
+  },
+  "gravity recovery and interior laboratory": {
+    "name": "Gravity Recovery and Interior Laboratory",
+    "type": "Mission",
+    "description": "Gravity Recovery and Interior Laboratory (GRAIL) consist of two small spacecrafts (GRAIL A [Ebb] and B [Flow]). It was launched on September 10, 2011. It used high-quality gravitational field mapping of the Moon to determine its interior structure. On August 31, 2012, the two spacecrafts started collecting data at a lower altitude.",
+    "start_date": "2011-09-10",
+    "stop_date": "2012-12-18"
+  },
+  "hayabusa mission": {
+    "name": "Hayabusa Mission",
+    "type": "Mission",
+    "description": "The Hayabusa (formerly MUSES-C) mission was a JAXA mission that successfully encountered and collected sampled from asteroid (25143) Itokawa in September-November 2005, returning those samples to Earth. The spacecraft itself burned up on reentry into Earth's atmosphere, as planned.",
+    "start_date": "2003-05-09",
+    "stop_date": "2010-06-13"
+  },
+  "hst": {
+    "name": "HST",
+    "type": "Mission",
+    "description": "The Hubble Space Telescope is a cooperative program of the European Space Agency (ESA) and the National Aeronautics and Space Administration (NASA) to operate a long-lived space-based observatory for the benefit of the international astronomical community. HST is an observatory first dreamt of in the 1940s, designed and built in the 1970s and 80s, and launched in the 1990s. HST was designed to be a different type of mission for NASA: a permanent space-based observatory. HST is a 2.4-meter, f/24 Ritchey-Chretien reflecting telescope capable of performing observations in the visible, near-ultraviolet, and near-infrared. It was deployed in low-Earth orbit (600 kilometers altitude) by the crew of the space shuttle Discovery (STS-31) on 25 April 1990. It was visited by astronauts for servicing missions five times, most recently in 2009.",
+    "start_date": "1990-04-08",
+    "stop_date": ""
+  },
+  "hayabusa2 asteroid sample return mission": {
+    "name": "Hayabusa2 Asteroid Sample Return Mission",
+    "type": "Mission",
+    "description": "The Hayabusa2 mission will obtain samples from the C-type asteroid (162173) Ryugu to investigate the origin of water and organic materials on Earth, and bring them back to Earth. It is important to understand the early history and transfer processes of the Solar System.",
+    "start_date": "2014-12-03",
+    "stop_date": ""
+  },
+  "infrared astronomical satellite": {
+    "name": "Infrared Astronomical Satellite",
+    "type": "Mission",
+    "description": "The IRAS mission was a joint program of the USA, the Netherlands, and the UK to conduct a survey of the sky in four IR wavelengths. It also made pointed observatons of selected astronomical and solar system objects.",
+    "start_date": "1983-01-26",
+    "stop_date": "1983-11-23"
+  },
+  "international cometary explorer": {
+    "name": "International Cometary Explorer",
+    "type": "Mission",
+    "description": "The International Cometary Explorer (ICE) became part of the Halley Armada to study comet Halley in 1986. It was first place in the Earth-Sun L1 position under the name of International Sun/Earth Explorer 3 (ISEE-3). It was to study the Sun-Earth relationship beyond the Earth's magnetosphere. As the part of the armada, it went through the tail of Halley to collect data. In 2014, a crowdfunding group tried to use it for another comet pass, but it lost contact with the spacecraft.",
+    "start_date": "1983-12-22",
+    "stop_date": ""
+  },
+  "international rosetta mission": {
+    "name": "International Rosetta Mission",
+    "type": "Mission",
+    "description": "ESA's Rosetta mission launched on 2 March 2004. Designed to do a detailed study of comet 67P/Churyumov-Gerasimenko, it was the first spacecraft to orbit a comet and to deploy a lander to the surface of a comet. The spacecraft first encountered the comet in August 2014, established orbit, and observed the nucleus of the comet in detail through perihelion. The mission ended on 30 September 2016 with a planned hard landing on the comet's surface.",
+    "start_date": "1995-03-01",
+    "stop_date": ""
+  },
+  "international ultraviolet explorer mission": {
+    "name": "International Ultraviolet Explorer Mission",
+    "type": "Mission",
+    "description": "The IUE mission was a joint collaboration between NASA, ESA, and the UK's Science and Engineering Research Council. It launched in January 1978 for a nominal 3-year service life, and was still operating effectively 18 years later when it was turned off as a result of funding being cut.",
+    "start_date": "1978-01-26",
+    "stop_date": "1996-09-30"
+  },
+  "smart lander for investigating moon mission": {
+    "name": "Smart Lander for Investigating Moon mission",
+    "type": "Mission",
+    "description": "The Smart Lander for Investigating Moon (SLIM) mission aims to attempt a 'pinpoint landing' within an approximately 100-meter error circle on the Moon. The planned landing site is located near Shioli crater (25.2 degrees east, 13.3 degrees south), to the west of Mare Nectaris. Based on observations from the Kaguya (SELENE) spacecraft, there is a high possibility that mantle materials are exposed around Shioli crater. Therefore, we aim to estimate the Mg# (i.e., the atomic ratio of Mg / (Mg + Fe)) of lunar mantle materials, which is crucial for understanding the early history of the Earth-Moon system.",
+    "start_date": "2023-09-06",
+    "stop_date": "2024-08-23"
+  },
+  "korea pathfinder lunar orbiter": {
+    "name": "Korea Pathfinder Lunar Orbiter",
+    "type": "Mission",
+    "description": "Korea Pathfinder Lunar Orbiter (KPLO), or Danuri (\ub2e4\ub204\ub9ac), is the first Korea robotic lunar probe expected to carry out a lunar observation mission at a nominal orbiting altitude of ~100 km from the Moon. It is a cooperative project between the Korea Aerospace Research Institute (KARI), which will oversee the system, main body of the orbiter, and ground station, and a Korea university, research institutes, and NASA supporting the payloads, deep space communication, and navigation technology. The KPLO spacecraft consists of the main body of the orbiter, propulsion systems, tracking systems, three communications antennae, two solar arrays, and six payloads. The KPLO project involves mapping the lunar environment, technology demonstrations for planetary exploration, international cooperation, and establishing a deep-space network. The KPLO mission is a large portion of phase one of the Korea Lunar Exploration Program (KLEP) and Korea's exciting journey into space exploration.",
+    "start_date": "2022-08-04",
+    "stop_date": "2030-12-31"
+  },
+  "lunar atmosphere and dust environment explorer (ladee)": {
+    "name": "Lunar Atmosphere and Dust Environment Explorer (LADEE)",
+    "type": "Mission",
+    "description": "The Lunar Atmosphere and Dust Environment Explorer (LADEE) was a robotic mission that, from low lunar orbit, gathered detailed information about the lunar atmosphere, conditions near the surface and environmental influences on lunar dust. LADEE was launched in September 2013 and carried out lunar orbital operations for 223 days, concluding when the spacecraft was decommissioned by impact into the moon in April 2014.",
+    "start_date": "2013-09-01",
+    "stop_date": "2014-02-17"
+  },
+  "light italian cubesat for imaging of asteroids": {
+    "name": "Light Italian CubeSat for Imaging of Asteroids",
+    "type": "Mission",
+    "description": "The LICIACube mission was a mission of the Agenzia Spaziale Italiana (ASI) that was carried by the Double Asteroid Redirection Test (DART) mission impactor spacecraft to the vicinity of the Didymos system. It was then released 15 days before the DART impact into Dimorphos to observe the impact and aftermath of the collision of DART with Dimorphos.",
+    "start_date": "2021-11-24",
+    "stop_date": ""
+  },
+  "lucy mission": {
+    "name": "Lucy MIssion",
+    "type": "Mission",
+    "description": "Lucy will be the first space mission to explore a population of small bodies known as the JupiterTrojan asteroids. This mission plan includes encounters with three main belt alsteroid and eight Jupiter Trojans. The Lucy spacecraft also observed the impact of the DART spacecraft into the Dimorphos, the moon of the Didymos system.",
+    "start_date": "2021-10-16",
+    "stop_date": ""
+  },
+  "lunar prospector": {
+    "name": "Lunar Prospector",
+    "type": "Mission",
+    "description": "The Lunar Prospector (LP) Mission consisted of a spin-stabilized orbiter spacecraft designed to perform continuous mapping of the Moon from a circular polar orbit. The LP spacecraft was launched on January 7, 1998 (UTC). The primary mapping mission began on January 16, 1998 and lasted for one year. During most of the mapping mission, the spacecraft mapped the surface from a 118-minute, circular, polar orbit 100 km above the moon's surface. Starting on December 19, 1998, the spacecraft was maneuvered into a 40 km orbit as a transition into a low altitude extended mission orbit. The transition orbit was used to collect gravity data in order to verify the moon's gravity model in preparation for conducting the extended mission orbit. The extended mission began on January 16, 1999. The objective of the extended mission was to provide higher resolution mapping from a circular, polar orbit averaging 30 km above the moon's surface. The Lunar Prospector mission ended on July 31, 1999 when the spacecraft was intentionally impacted into a crater near the south pole. The impact site was targeted for one of the hydrogen deposits detected by Lunar Prospector's Neutron Spectrometer.",
+    "start_date": "1998-01-06",
+    "stop_date": "1999-07-31"
+  },
+  "lunar reconnaissance orbiter": {
+    "name": "Lunar Reconnaissance Orbiter",
+    "type": "Mission",
+    "description": "The Lunar Reconnaissance Orbiter (LRO), launched on June 18, 2009, continues to orbit and investigate the Moon. The mission objectives include producing a high-resolution global topographic model, mapping the distribution of hydrogen, and identifying lunar landing sites and associated hazards.",
+    "start_date": "2009-06-18",
+    "stop_date": ""
+  },
+  "lunar trailblazer": {
+    "name": "Lunar Trailblazer",
+    "type": "Mission",
+    "description": "Lunar Trailblazer is a NASA SIMPLEX mission to acquire simultaneous, nested high-resolution near-infrared spectral images and thermal infrared data. The payload consists of the High-resolution Volatiles and Minerals Moon Mapper (HVM3) and the Lunar Thermal Mapper (LTM). The mission will study the mineralogy of the lunar surface at all latitudes, including within Permanently Shadowed Regions.",
+    "start_date": "2025-02-01",
+    "stop_date": ""
+  },
+  "magellan": {
+    "name": "Magellan",
+    "type": "Mission",
+    "description": "Magellan is a spacecraft that was sent to Venus to study the surface of the planet. It was launched on May 4, 1989 by the Space Shuttle Atlantis. It mapped the surface by radar.",
+    "start_date": "1989-05-04",
+    "stop_date": "1994-10-12"
+  },
+  "mariner 69": {
+    "name": "Mariner 69",
+    "type": "Mission",
+    "description": "The Mariner 69 mission involved two uncrewed NASA spacecraft, Mariner 6 and Mariner 7, which completed the first dual mission to Mars in 1969 under the Mariner program. Mariner 6 launched from Launch Complex 36B and Mariner 7 from Launch Complex 36A at Cape Canaveral Air Force Station. Both spacecraft flew over Mars' equator and south polar regions, analyzing the atmosphere and surface using remote sensors. They recorded and relayed hundreds of images back to Earth. The mission aimed to study Mars' surface and atmosphere during close flybys, laying the groundwork for future investigations, particularly the search for extraterrestrial life. Additionally, it aimed to develop and demonstrate technologies needed for future Mars missions. Mariner 6 also provided valuable experience and data to aid the Mariner 7 encounter five days later.",
+    "start_date": "1969-02-24",
+    "stop_date": "1970-12-28"
+  },
+  "mariner 9": {
+    "name": "Mariner 9",
+    "type": "Mission",
+    "description": "On November 14, 1971, Mariner 9 became the first spacecraft to orbit another planet when it established orbit around Mars. Six experiments were carried as part of the science payload: television, ultraviolet spectrometer, infrared spectroscopy, infrared radiometry, S-band occultation and celestial mechanics. The mission was originally planned as a pair, similar to the Mariner 6 and 7 missions, but Mariner 8 was lost because of guidance difficulties in the second stage of the launch vehicle. It was determined that an orbit for a single-spacecraft mission could be developed to meet all basic mission and specific science objectives. A single-spacecraft plan, involving an inclination of 65 degrees, a period of about 12 hours, a periapsis altitude of 1350 Km, and an arrival date of November 14, 1971, was evaluated and formalized in 2 weeks. Mariner 9 carried on the Mariner program investigation of the Martian atmosphere, and mapping of the Martian surface at the highest resolution yet achieved at the time.",
+    "start_date": "1968-06-01",
+    "stop_date": "1973-06-01"
+  },
+  "mariner 10": {
+    "name": "Mariner 10",
+    "type": "Mission",
+    "description": "Mariner 10 is a spacecraft launched on November 3, 1973, that conducted flybys of Mercury and Venus. It was the first spacecraft to utilize gravity assist for its journey.",
+    "start_date": "1973-11-03",
+    "stop_date": "1975-03-24"
+  },
+  "mars 2020: perseverance rover": {
+    "name": "Mars 2020: Perseverance Rover",
+    "type": "Mission",
+    "description": "The Mars 2020 Perseverance Rover searches for signs of ancient microbial life, to advance NASA's quest to explore the past habitability of Mars. The rover is collecting core samples of Martian rock and soil (broken rock and soil), for potential pickup by a future mission that would bring them to Earth for detailed study.",
+    "start_date": "2020-07-30",
+    "stop_date": ""
+  },
+  "mars express": {
+    "name": "Mars Express",
+    "type": "Mission",
+    "description": "The Mars Express mission consisted of (i) a 3-axis stabilized orbiter with a fixed high-gain antenna and body-mounted instruments, and (ii) a lander named BEAGLE-2, and was dedicated to the orbital and in-situ study of the interior, subsurface, surface and atmosphere of the planet.",
+    "start_date": "2003-06-02",
+    "stop_date": ""
+  },
+  "mars exploration rovers: spirit and opportunity": {
+    "name": "Mars Exploration Rovers: Spirit and Opportunity",
+    "type": "Mission",
+    "description": "NASA's twin rovers, Spirit and Opportunity, landed on Mars on Jan. 3 and Jan. 24, 2004 PST (Jan. 4 and Jan. 25 UTC), respectively. The rovers were planned as 90-day missions to search for geological clues regarding environmental conditions on early Mars, and assess whether those environments were conducive to life. Spirit lasted 20 times longer than its original design, concluding its mission on March 22, 2010. Opportunity worked for nearly 15 years on Mars and broke the driving record for putting the most miles on its odometer, ending its mission on Feb. 13, 2019.",
+    "start_date": "2000-05-08",
+    "stop_date": "2019-02-13"
+  },
+  "mars global surveyor": {
+    "name": "Mars Global Surveyor",
+    "type": "Mission",
+    "description": "Mars Global Surveyor was an orbiting spacecraft that looped around the Red Planet for a decade. The mission overhauled scientists' understanding of Mars by studying the entire Martian surface, atmosphere, and interior. Major findings included dramatic evidence that water still flows on Mars in short bursts down hillside gullies, and the identification of water-related mineral deposits leading to selection of a Mars rover landing site for a subsequent mission. The mission continued sending images and other data until November 2006, when it went silent due to a series of events linked to a computer error likely caused by battery failure.",
+    "start_date": "1994-10-12",
+    "stop_date": "2006-11-14"
+  },
+  "mars observer": {
+    "name": "Mars Observer",
+    "type": "Mission",
+    "description": "Mars Observer was launched on September 25, 1992, from Cape Canaveral using a Titan III rocket. However, on August 21, 1993, contact was lost during the pre-Mars-Orbit-Insertion sequence, and efforts to re-establish communication failed. The spacecraft was intended to enter an elliptical orbit around Mars, subsequently adjusting to a near-circular, low altitude, sun-synchronous orbit for global mapping over a Martian year. The mission planned for continuous data collection and playback, with specific orbit trim adjustments for uniform coverage. Mars Observer featured a stabilized platform for its scientific instruments, including a Gamma Ray Spectrometer and Magnetometer. However, it lacked a movable scanning platform, relying instead on internal scanning mechanisms for its observations.",
+    "start_date": "1992-09-25",
+    "stop_date": "1993-08-21"
+  },
+  "mars pathfinder": {
+    "name": "Mars Pathfinder",
+    "type": "Mission",
+    "description": "The Mars Pathfinder mission, designed to demonstrate a low-cost method for delivering a set of science instruments to the Red Planet, was the first wheeled vehicle to be used on any other planet in the solar system and served as the foundation for the Mars rovers of today. The mission landed a rover -- Sojourner -- on the surface of Mars using an air bag landing system and innovative petal design, which have been used since in various incarnations to land other rovers on the Red Planet. Sojourner spent 83 days of a planned seven-day mission exploring the Martian terrain, snapping photographs and taking chemical, atmospheric and other measurements",
+    "start_date": "1993-11-01",
+    "stop_date": "1998-03-10"
+  },
+  "mars reconnaissance orbiter": {
+    "name": "Mars Reconnaissance Orbiter",
+    "type": "Mission",
+    "description": "The Mars Reconnaissance Orbiter, or MRO, has studied the Red Planet's atmosphere and terrain from orbit since 2006 and also serves as a key data relay station for other Mars missions, including the Mars Exploration Rover Opportunity. Equipped with a powerful camera called HiRISE that has aided in a number of discoveries, the Mars Reconnaissance Orbiter has sent back thousands of stunning images of the Martian surface that are helping scientists learn more about Mars, including the history of water flows on or near the planet's surface.",
+    "start_date": "2005-08-12",
+    "stop_date": ""
+  },
+  "mars science laboratory": {
+    "name": "Mars Science Laboratory",
+    "type": "Mission",
+    "description": "The Mars Science Laboratory (MSL) project, initiated in 2003, marked a significant advancement in Mars exploration with the successful deployment of the Curiosity rover. Launched on November 26, 2011, and landing in Gale Crater on August 6, 2012, the MSL mission has broadened our understanding of Martian environments and their potential habitability. Throughout its journey to Mars, and during its primary mission which concluded on September 28, 2014, Curiosity undertook comprehensive scientific investigations. These included routine instrument health checks and data collection by the Radiation Assessment Detector (RAD) during transit. On the Martian surface, Curiosity's primary objectives were to assess the biological potential of the landing site, characterize the landing region's geology, study planetary processes relevant to habitability, and quantify the spectrum of surface radiation. The rover gathered crucial data through imaging, spectroscopy, and other analytic techniques to evaluate the composition of Martian soils, rocks, and the atmosphere. These efforts have provided vital insights into Mars' habitability and environmental history. The continuation of these scientific objectives into Curiosity\u2019s first extended mission aims to deepen the exploration of potentially habitable environments that could also preserve organic compounds. Additionally, the mission focuses on exploring and characterizing significant geological transitions in the region surrounding the foothills of Mt. Sharp. This ongoing research is pivotal for understanding the past and present potential for life on Mars and informs future exploratory missions to the Red Planet.",
+    "start_date": "2003-10-01",
+    "stop_date": ""
+  },
+  "mars atmosphere and volatile evolution": {
+    "name": "Mars Atmosphere and Volatile EvolutioN",
+    "type": "Mission",
+    "description": "The Mars Atmosphere and Volatile Evolution (MAVEN) spacecraft was sent to Mars to study the atmosphere. It was launched on November 18, 2013. It would study the loss of volatiles, current state of the upper atmosphere, rate of escape for the gases, and ratios of stable isotopes. In 2017, the orbit was changed to be part of the communications relay for Mars.",
+    "start_date": "2013-11-13",
+    "stop_date": ""
+  },
+  "mercury surface, space environment, geochemistry, and ranging": {
+    "name": "MErcury Surface, Space ENvironment, GEochemistry, and Ranging",
+    "type": "Mission",
+    "description": "Mercury Surface, Space Environment, Geochemistry, and Ranging (MESSENGER) launched in August 2004. It entered into orbit around Mercury on March 18, 2011. It was to study the chemical composition, geology, and magnetic field of Mercury. It impacted the planet on April 30, 2015.",
+    "start_date": "2004-08-03",
+    "stop_date": "2015-04-30"
+  },
+  "midcourse space experiment": {
+    "name": "Midcourse Space Experiment",
+    "type": "Mission",
+    "description": "The Midcourse Space Experiment (MSX) was launched in 1996 by the U.S. Ballistic Missile Defence Organization (renamed the \"Missile Defense Agency\" in 2002) as a technology demonstration mission. Part of its mission included mapping the galactic plane in the Infrared, imaging the moon, and surveying small bodies.",
+    "start_date": "1996-04-24",
+    "stop_date": "1997-02-26"
+  },
+  "near earth asteroid rendezvous mission": {
+    "name": "Near Earth Asteroid Rendezvous Mission",
+    "type": "Mission",
+    "description": "The Near Earth Asteroid Rendezvous (NEAR) mission to the near-earth asteroid 433 Eros was launched in Feb. 1996 and carried out Eros orbital operations from Feb. 2000 through Feb. 2001. It acquired the first comprehensive, spatially resolved measurements of the geomorphology, reflectance spectral properties, and shape of an asteroid, and X-ray and gamma-ray spectral measurements of elemental abundances from orbit and the surface. The ambient magnetic field in the vicinity of Eros was also measured. On the way to Eros, the spacecraft also performed a flyby of the asteroid 253 Mathilde in June 1997, obtaining image data and a mass determination.",
+    "start_date": "1996-02-17",
+    "stop_date": "2001-02-28"
+  },
+  "near-earth object wide-field infrared survey explorer": {
+    "name": "Near-Earth Object Wide-Field Infrared Survey Explorer",
+    "type": "Mission",
+    "description": "The NEOWISE mission reactivated the Wide-Field Infrared Survey Explorere (WISE) spacecraft to hunt for asteroids and comets, including those that could pose a threat to Earth. The NEOWISE mission ran from December 2013 to JUly 31, 2024. The WISE spacecraft burned up on reentry to Earth's atmosphere on November 1, 2024.",
+    "start_date": "2013-12-23",
+    "stop_date": "2020-12-31"
+  },
+  "new horizons": {
+    "name": "New Horizons",
+    "type": "Mission",
+    "description": "New Horizons mission was the first to fly by and study the dwarf planet Pluto and its moons Charon, Nix, and Hydra. As the New Horizons spacecraft passed through the Jovian system for a gravity assist in February of 2007, it performed scientific observations of Jupiter, the Galilean satellites, the Jovian rings, Himalia, Elara, and Earth. After the successfull flyby of Pluto on July 14, 2015, the spacecraft continued on for extended missions in the Kuiper Belt.",
+    "start_date": "2006-01-19",
+    "stop_date": "2016-10-26"
+  },
+  "new horizons kuiper belt extended mission 1": {
+    "name": "New Horizons Kuiper Belt Extended Mission 1",
+    "type": "Mission",
+    "description": "The first extended mission of the New Horizons spacecraft in the Kuiper Belt, KEM1 included the close flyby of (486958) Arrokoth (2014 MU69), a Kuiper Blet Object (KBO), as well as survey observations of the Kuiper Belt environment.",
+    "start_date": "2016-10-26",
+    "stop_date": "2022-09-30"
+  },
+  "new horizons kuiper belt extended mission 2": {
+    "name": "New Horizons Kuiper Belt Extended Mission 2",
+    "type": "Mission",
+    "description": "The New Horizons Kuiper Belt Extended Mission (KEM) is a mission to a recently discovered, unexplored region of the solar system, the Kuiper Belt. The first part (KEM1) included a close flyby of Kuiper Belt Object (KBO) 2014 MU69 (Arrokoth). This second part (KEM2) continued to survey the Kuiper Belt using New Horizons as an observatory, examining many other Kuiper Belt Objects and Centaurs while studying the Kuiper Belt dust, gas, plasma, and energetic particle environments. These studies will place both the Pluto system and Arrokoth in better context among KBOs, increasing scientific understanding of both. New science goals for KEM2 include: new studies in Planetary Science (large-phase angle observations of gas giants), Heliophysics (Lyman-alpha all sky map), and Astrophysics (cosmic optical and ultraviolet background, and distant shock regions). KEM2 data deliveries also include data taken during KEM1 but not downlinked until KEM2.",
+    "start_date": "2022-10-01",
+    "stop_date": "2024-09-30"
+  },
+  "new exploration of tempel 1 mission": {
+    "name": "New Exploration of Tempel 1 Mission",
+    "type": "Mission",
+    "description": "The NExT mission was the extended mission, approved in 2007, for the Stardust spacecraft after it successfully returned samples of comet dust to Earth. The Stardust spacecraft was redirected to intercept Comet 9P/Tempel 1, target of the Deep Impact mission in in 2005, to image the impact area. Small changes were noted.",
+    "start_date": "2004-02-12",
+    "stop_date": "2011-03-25"
+  },
+  "phobos mission": {
+    "name": "Phobos Mission",
+    "type": "Mission",
+    "description": "The Phobos mission was a program of the Soviet Union intended to send two spacecraft, Phobos 1 and 2, to study the satellites of Mars. The two spacecraft were launch 5 days apart in July 1988. Phobos 1 was lost in transit. Phobos 2 entered a Martian orbit and returned some observations, but contact was lost prior to deployment of the Phobos landers.",
+    "start_date": "1988-07-07",
+    "stop_date": "1989-03-27"
+  },
+  "mars phoenix": {
+    "name": "Mars Phoenix",
+    "type": "Mission",
+    "description": "The Phoenix Mission was the first Scout class mission. It consisted of a single lander with associated instrumentation. Phoenix was launched on August 4, 2007 and landed on the northern plains of Mars (68.22 degrees N, 234.25 degrees East Areocentric) on May 25, 2008. The Lander operated until November 2, 2008, performing on the Martian surface for 152 sols (sols are Martian days, 1 sol equaling 24.66 hours). The Surface Phase constituted the primary and extended missions, and focused on testing the hypothesis that water ice exists beneath a thin soil cover, evaluating evidence for habitability zones, and monitoring weather during the northern summer. Hence, inferring the presence of water and its interaction with the Martian soil was of crucial importance.",
+    "start_date": "2007-08-04",
+    "stop_date": "2008-11-02"
+  },
+  "pioneer 10": {
+    "name": "Pioneer 10",
+    "type": "Mission",
+    "description": "Pioneer 10 was the first spacecraft that went to Jupiter. It was also the first spacecraft to achieve escape velocity. It was launched on March 2, 1972. It was at 80 AU from Earth when it lost contact.",
+    "start_date": "1972-03-02",
+    "stop_date": "1997-03-31"
+  },
+  "pioneer 11": {
+    "name": "Pioneer 11",
+    "type": "Mission",
+    "description": "NASA's Pioneer 11, a sister spacecraft to Pioneer 10, was the first spacecraft to study Saturn up close. The mission ended in 1995 and Pioneer 11 is on a trajectory to take it out of the solar system. Pioneer 11 is one of five spacecraft on a trajectory that will take them out of our solar system. Pioneer 11 will pass near the star Lambda Aquila in almost four million years. Like Pioneer 10 and Voyager 1 and 2, Pioneer 11 carries a message from humanity to the cosmos.",
+    "start_date": "1972-03-02",
+    "stop_date": "1995-09-30"
+  },
+  "pioneer 8": {
+    "name": "Pioneer 8",
+    "type": "Mission",
+    "description": "The Pioneer 8, Pioneer C, was launched on December 13, 1967. It was part of group of spacecrafts to study space weather at various points between Earth and the Sun. The spacecraft was in a solar orbit of 1.1 AU.",
+    "start_date": "1967-12-13",
+    "stop_date": "1996-08-22"
+  },
+  "pioneer 9": {
+    "name": "Pioneer 9",
+    "type": "Mission",
+    "description": "The Pioneer 9, Pioneer D, was launched on November 8, 1968. It was part of group of spacecrafts to study space weather at various points between Earth and the Sun. The spacecraft was in a solar orbit of 0.8 AU.",
+    "start_date": "1968-11-18",
+    "stop_date": "1983-05-19"
+  },
+  "pioneer venus": {
+    "name": "Pioneer Venus",
+    "type": "Mission",
+    "description": "The Pioneer Venus was launched on May 20, 1978. It had an orbiter and four probes that entered the atmosphere. One probe had even transmitted data from the surface. The bus that carried the orbiter and probes also had mass spectrometers to study the atmosphere. The orbiter lasted until August 1992.",
+    "start_date": "1978-05-20",
+    "stop_date": "1992-10-07"
+  },
+  "psyche mission": {
+    "name": "Psyche Mission",
+    "type": "Mission",
+    "description": "The primary objective of the Psyche mission is to map and study the poperties of asteroid (16) Psyche. Psyche is the first mission to a metal asteroid which offers a new opportunity for discovery on the building blocks of planet formation. The spacecraft launched successfully on 13 October 2023.",
+    "start_date": "2022-08-01",
+    "stop_date": ""
+  },
+  "sakigake mission": {
+    "name": "Sakigake Mission",
+    "type": "Mission",
+    "description": "The Sakigake spacecraft, a test spacecraft for the Japanese launched on 7 January 1985, flew by Halley's Comet at a distance of about 7 million km. It was part of the Halley Armada, but also the interplanetary plasma and Earth's magnetic tail. Sakigake paved the way for the Suisei mission.",
+    "start_date": "1985-01-07",
+    "stop_date": "1999-01-07"
+  },
+  "solar and heliospheric observatory mission": {
+    "name": "Solar and Heliospheric Observatory Mission",
+    "type": "Mission",
+    "description": "The SOHO mission is an ESA-lead joint mission between NASA and the European Space Agency to operate a solar telescope parked in the first Lagrangian (L1) libration point between the Earth and Sun. Launched in December 1995, it has been operating for nearly 30 years.",
+    "start_date": "1995-12-02",
+    "stop_date": ""
+  },
+  "spitzer space telescope mission": {
+    "name": "Spitzer Space Telescope Mission",
+    "type": "Mission",
+    "description": "The Spitzer Space Telescope, the last of NASA's Great Observatories to launch, was a space-based infrared observatory. Launched as the Space Infrared Telescope Facility (SIRTF) in August 2003, it was renamed in December of the same year to honor Lyman S. Spitzer, Jr., one of the earliest proponents of space-based telescopes. Spitzer operated with cryogenically-cooled instruments until the last of its helium boiled away in May 2009, at which point the project was reconfigured and renamed the Spitzer Warm Mission. Operations continued until 30 January 2020.",
+    "start_date": "2003-08-25",
+    "stop_date": "2020-01-30"
+  },
+  "stardust mission": {
+    "name": "Stardust Mission",
+    "type": "Mission",
+    "description": "The Stardust Mission, launched in February 1999, was the f1rst to collect and return samples of cometary and interplanetary dust. The primary mission included a flyby of asteroid (5535) Annefrank in November 2002, on the way to the flyby of long-period Comet 81P/Wild 2 in January 2004. The samples collected (in aerogel) were successfully returned to Earth in January 2006. The spacecraft was redirected to Comet 9P/Tempel 1 in its extended mission (NExT - New Exploration of Tempel 1).",
+    "start_date": "1999-02-07",
+    "stop_date": "2006-01-16"
+  },
+  "suisei mission": {
+    "name": "Suisei Mission",
+    "type": "Mission",
+    "description": "The Suisei mission was the primary Japanese mission to Comet 1P/Halley - part of the Halley Armada. Following on the success of the Sakigake practice mission, Suisei launched in August 1985 and successfully flew by Halley's comet at a distance of 151,000km on the sunward side.",
+    "start_date": "1985-08-18",
+    "stop_date": "1998-02-28"
+  },
+  "venus climate orbiter akatsuki mission": {
+    "name": "Venus Climate Orbiter Akatsuki Mission",
+    "type": "Mission",
+    "description": "The main goal of the mission of Akatsuki, also known as Venus Climate Orbiter (VCO) and PLANET-C is to understand the Venusian atmospheric dynamics, super-rotation, and cloud physics, with the explorations of the ground surface and the interplanetary dust also being the themes. The Venusian atmosphere was studied during the Venus Express mission of the European Space Agency. Akatsuki was also designed to study the Venusian atmosphere, but in contrast to the Venus Express strategy, five cameras with narrowband filters will image Venus at different wavelengths to track the distributions of clouds and minor gaseous constituents at different heights. In other words, we aim to study the Venusian atmospheric dynamics in three dimensions, while Venus Express collected mainly spectroscopic observations of the atmosphere. The mission started with the mission name and the spacecraft name PLANET-C, which means Japan's third planetary explorer succeeding SUISEI (PLANET-A), which observed Halley's comet, and NOZOMI (PLANET-B), which could not complete its mission to explore Mars.",
+    "start_date": "2010-05-20",
+    "stop_date": ""
+  },
+  "firefly aerospace's blue ghost mission 1": {
+    "name": "Firefly Aerospace's Blue Ghost Mission 1",
+    "type": "Mission",
+    "description": "As part of NASA\u2019s CLPS (Commercial Lunar Payload Services) initiative and Artemis campaign, Firefly\u2019s Blue Ghost lunar lander delivered ten NASA science and technology instruments to Mare Crisium on the near side of the Moon. The CLPS name for the delivery is CLPS Task Order (TO) 19D and the Firefly Aerospace mission name is Blue Ghost Mission 1. Blue Ghost Mission 1 (BGM1) launched on Jan 15, 2025 and landed on March 2, 2025. The surface mission extended through one lunar day and multiple hours into the lunar night before concluding on March 16, 2025.",
+    "start_date": "2025-01-15",
+    "stop_date": "2025-03-16"
+  },
+  "venera 16": {
+    "name": "Venera 16",
+    "type": "Mission",
+    "description": "The Soviet Venera 16 and Venera 15 missions consisted of two identical spacecraft that used 8 cm band side-looking radar to map the surface of Venus. The spacecraft entered nearly polar orbits a day apart with orbital planes shifted 4.45 deg, enabling reimaging capabilities. Both had periapsis at 62 deg N latitude and together mapped from the north pole to 30 deg N latitude with 1-2 km resolution over 8 months of operations.",
+    "start_date": "1983-06-07",
+    "stop_date": "1985-06-13"
+  },
+  "deep space climate observatory (dscovr)": {
+    "name": "Deep Space Climate Observatory (DSCOVR)",
+    "type": "Mission",
+    "description": "The Deep Space Climate Observatory (DSCOVR) mission monitors changes in the solar wind, providing space weather alerts and forecasts or geomagnetic storms that could disrupt power grids, satellites, telecommunications, aviation, and GPS. It orbits at the L1 (Lagrange 1) point between the Earth and the Sun and was launched on February 11, 2015.",
+    "start_date": "2015-02-11",
+    "stop_date": ""
+  },
+  "optical constants of laboratory generated titan atmospheric aerosol analogs": {
+    "name": "Optical Constants of Laboratory Generated Titan Atmospheric Aerosol Analogs",
+    "type": "Individual Investigation",
+    "description": "This archive contains experimentally measured complex refractive indices of laboratory-generated organic refractory materials (tholins) produced at low temperature (150 K) using plasma chemistry in the stream of a supersonic expansion in NASA Ames\u2019 COsmic SImulation Chamber (COSmIC) facility. The COSmIC tholin samples were produced from various gas mixtures representative of Titan, Pluto, Jupiter, and exoplanet atmospheric compositions with a high voltage of -700V. The real (n) and imaginary (k) parts of the complex index of refraction were determined from reflectance and transmission spectroscopic measurements conducted with the Optical Constants Facility and/or the Soleil Synchrotron AILES beamline facility.",
+    "start_date": "2026-04-08",
+    "stop_date": ""
+  },
+  "viking project": {
+    "name": "Viking Project",
+    "type": "Mission",
+    "description": "The Viking mission to Mars consisted of four spacecraft: the two orbiters VO1 and VO2, and two landers VL1 and VL2. During cruise to Mars, the landers were attached to the orbiters; the combined spacecraft were then known as Viking 1 and 2. The role of the orbiters was to transport the landers to Mars, to carry reconnaissance instruments for certifying the landing sites, to act as relay stations for lander data, and to perform their own scientific investigations. The initial orbit periapses were placed over the candidate landing sites to allow for maximum viewing resolution and relay of the lander data. After the primary lander missions were completed, the orbiters' orbits were allowed to drift so that the entire planetary surface could be systematically mapped by the three remote sensing experiments. The Viking 1 spacecraft was launched August 20, 1975, and arrived at Mars on June 19, 1976. Lander 1 was deployed to the Mars surface on July 20, 1976. The VO1 orbital inclination of 38-39 degrees was chosen to optimize communication with VL1. Viking 2 was launched September 9, 1975 and arrived at Mars August 7, 1976. VL2 landed on September 3, 1976, at a more northerly site than VL1. The VO2 orbit was correspondingly more inclined than VO1; initially 55 degrees, it was later adjusted to 80 degrees, providing particularly good coverage of polar regions. The areocentric locations of VL1 and VL2 have since been determined to be (22.270N, 48.264W) and (47.669N, 226.032W), respectively.",
+    "start_date": "1975-08-20",
+    "stop_date": "1983-05-21"
+  },
+  "volatiles investigating polar exploration rover": {
+    "name": "Volatiles Investigating Polar Exploration Rover",
+    "type": "Mission",
+    "description": "The VIPER mission, short for Volatiles Investigating Polar Exploration Rover, is a NASA initiative designed to explore the Moon's south pole. This robotic rover aims to locate and analyze water ice and other resources trapped in the lunar soil. By studying these materials, VIPER plans to help scientists understand the distribution, composition, and accessibility of lunar resources, which could support future human exploration. VIPER will operate in some of the coldest and darkest regions of the Moon, known as permanently shadowed craters, where water ice has been preserved for billions of years. The rover is about the size of a golf cart and is designed to traverse several miles during its original 100-day mission. The VIPER mission faced delays due to a combination of factors, including the need for additional preflight testing and supply chain challenges. Initially planned for a late 2023 launch, the mission was postponed to late 2024 to allow more time for testing the Astrobotic Griffin lander, which was to carry the rover. However, further delays pushed the readiness date to September 2025. NASA ultimately decided to cancel the mission in 2024, citing potential risks to other lunar exploration programs.",
+    "start_date": "2025-01-01",
+    "stop_date": "2025-01-01"
+  },
+  "wide-field infrared survey explorer mission": {
+    "name": "Wide-Field Infrared Survey Explorer Mission",
+    "type": "Mission",
+    "description": "The WISE mission was the primary mission for the WISE spacecraft, launched 14 December 2009. It conducted an all-sky survey at wavelength of 3.4, 4.6, 12, and 22 micrometers. The primary mission ended in February 2011 when the cryogen was exhausted. The spacecraft was placed into hibernation, and subsequently reactivated for the NEOWISE extended mission.",
+    "start_date": "2009-12-14",
+    "stop_date": "2012-02-01"
+  },
+  "earth-based observations of uranus system stellar occultations": {
+    "name": "Earth-based Observations of Uranus System Stellar Occultations",
+    "type": "Observing Campaign",
+    "description": "The observing campaign collects Earth-based observations of Uranus stellar occultations from 1972 to 2002, utilizing various high-speed photometers. It includes early events recorded on strip charts, additional unpublished high-SNR ground observations, and two occultations captured by the Hubble Space Telescope, as well as two using 2D imaging arrays.",
+    "start_date": "1972-03-10",
+    "stop_date": "2002-07-29"
+  },
+  "irtf io observing campaign": {
+    "name": "IRTF Io Observing Campaign",
+    "type": "Observing Campaign",
+    "description": "Initially started as part of the PDART 2016 efforts of Dr. Ashley Davies to archive important Io observations from publications. This observing campaign can be used for past and future observations conducted at the IRTF for Io, the satellite of Jupiter.",
+    "start_date": "1983-02-09",
+    "stop_date": ""
+  },
+  "observing campaign for support monitoring of jupiter": {
+    "name": "Observing Campaign for Support Monitoring of Jupiter",
+    "type": "Observing Campaign",
+    "description": "Initially started as part of the PDART 2016 efforts of Dr. Glenn Orton to archive ground-based observations as part of an ongoing observing campaign to monitor Jupiter in support of past, present, and future missions to Jupiter. Any ground-based observations of Jupiter for this purpose should use this context reference.",
+    "start_date": "2003-01-01",
+    "stop_date": ""
+  },
+  "lowell observatory uranus-neptune photometry": {
+    "name": "Lowell Observatory Uranus-Neptune Photometry",
+    "type": "Observing Campaign",
+    "description": "This observing campaign collates photometric observations of Uranus and Neptune (1972-2016) in the b (472 nm) and y (551 nm) filters of the Str\u221a\u2202mgren photometric system at Lowell Observatory. Observations recorded mainly seasonal variations of disk-integrated albedos of these objects. This bundle includes 360 observations of Uranus and 433 observations of Neptune from 1972-2016. The work was led by Wes Lockwood from Lowell Observatory.",
+    "start_date": "1972-01-17",
+    "stop_date": "2016-10-05"
+  },
+  "kpno mcmath-pierce solar telescope observations of mercury": {
+    "name": "KPNO McMath-Pierce Solar Telescope Observations of Mercury",
+    "type": "Observing Campaign",
+    "description": "This observing campaign collates obervations of Mercury collected from the McMath-Pierce Solar Telescope at Kitt Peak contemporaneous with MESSENGER's presence at Mercury.",
+    "start_date": "2010-01-01",
+    "stop_date": "2011-01-01"
+  },
+  "pre-magellan radar and gravity observations": {
+    "name": "Pre-Magellan Radar and Gravity Observations",
+    "type": "Observing Campaign",
+    "description": "This dataset contains 15 radar, altimetry, and gravity data sets, including extensive Earth-based radar observations of the Earth's Moon and the inner planets, spanning the years 1968-1990. These datasets were prepared in advance of the Magellan Mission to Venus (1990-1994) in order to provide a set of relevant radar and gravity data for comparison to Magellan data.",
+    "start_date": "1968-11-09",
+    "stop_date": "1988-07-27"
+  },
+  "saturn occultation of 28 sagittarius (1989)": {
+    "name": "Saturn Occultation of 28 Sagittarius (1989)",
+    "type": "Observing Campaign",
+    "description": "On 3 July 1989 an occultation of the bright star 28 Sagittarii provided a rare opportunity for occultation observations of both Saturn and its rings with Earth-based telescopes. Prior to 1989, most of our quantitative knowledge of the optical depths and detailed radial structure in the Saturn ring system was derived from occultation experiments carried out by the Voyager spacecraft. The data acquired during this event provided important details on the state and evolution of Saturn's ring system during the period between Voyager and Cassini.",
+    "start_date": "1989-07-03",
+    "stop_date": "1989-07-03"
+  },
+  "saturn ring plane crossing (1995)": {
+    "name": "Saturn Ring Plane Crossing (1995)",
+    "type": "Observing Campaign",
+    "description": "The 1995-1996 Saturn Ring Plane Crossing (RPX) occurred as the Earth passed through the plane of Saturn's rings three times. During this period, astronomers were eager to carry out out a wide range of Saturn observations. The three crossings occurred on May 22, 1995; August 10, 1995; and February 11, 1996. Additionally, the Sun crossed the plane of Saturn\u2019s rings on November 17-21, 1995. Saturn RPX events only occur every 13-15 years, and poor viewing geometry as seen from Earth characterizes the 2009 and 2025 events (though the 2009 event was spectacularly observed by the Cassini spacecraft from Saturn orbit). The next favorable Earth-based viewing of a Saturn RPX will be in 2038-2039. The period around a Saturn RPX enables Earth-based astronomers to study a wide range of phenomena not observable at any other time. Direct measurements of ring thickness and vertical ring warps become possible. Precise timing of the crossings makes it possible to better determine Saturn's rotation pole. With the rings becoming very thin and faint, detections of faint outer rings and tiny ring-moons become possible. Also, satellite eclipses, occultations and mutual events during the RPX period can be used to refine satellite orbits throughout the Saturn system. The data acquired during the 1995-1996 RPX events comprise some of the best obtained since the Voyager encounters with Saturn and serve as a useful bridge between the Voyager and Cassini observations of Saturn.",
+    "start_date": "1994-01-01",
+    "stop_date": "1997-01-01"
+  },
+  "saturn small satellite astrometry": {
+    "name": "Saturn Small Satellite Astrometry",
+    "type": "Observing Campaign",
+    "description": "A long-term observing campaign of Saturn Small Satellite Astrometry was undertaken from 1994 to 2005 to extend the time line of astrometric observations of Prometheus and Pandora and other Saturnian moons in order to refine their ephemerides. This was done in response to the discovery, during the 1995-1996 Saturn Ring Plane Crossing (RPX) event, that the positions of Saturn\u2019s moons Prometheus and Pandora varied significantly from the predictions of their positions based on Voyager observations. The goal was to determine the cause(s) of the discrepancies. This campaign used archival HST data from 1994, previously unexamined RPX images, and a large series of targeted WFPC2 observations between 1996 and 2005. Sufficient observations to produce astrometrically meaningful data for nine other satellites were obtained incidentally in the Prometheus-Pandora observing campaign. Details of the project can be found in French et al., 2006",
+    "start_date": "1994-12-01",
+    "stop_date": "2005-01-14"
+  },
+  "astromaterial geochemical data": {
+    "name": "Astromaterial Geochemical Data",
+    "type": "Other Investigation",
+    "description": "Initially created in support of PDART efforts by Kerstin Lehnert et al., this investigation is designed to accumulate geochemical data of astromaterials acquired via terrestrial laboratory analyses. Geochemical and geochronology analyses of samples returned by space missions (e.g., HAYABUSA, Stardust, Apollo) are included, as are studies of materials recovered through terrestrial exploration (e.g., observed falls, Antarctic Search for Meteorites expeditions). Future missions with a sample return focus may also be included herein.",
+    "start_date": "2004-08-13",
+    "stop_date": ""
+  },
+  "commercial lunar payload services (clps) initiative": {
+    "name": "Commercial Lunar Payload Services (CLPS) Initiative",
+    "type": "Other Investigation",
+    "description": "Through the Commercial Lunar Payload Services (CLPS) initiative, NASA is working with several American companies to deliver science experiments and technology demonstrations to the surface of the Moon. Individual NASA CLPS task order awards to US companies cover end-to-end delivery services for NASA sponsored instruments, including payload integration, mission operations, launch from Earth, and either landing on the surface of the Moon or being inserted in lunar orbit. The NASA sponsored instruments flying aboard CLPS landers are selected to advance capabilities for science, exploration or commercial development of the Moon, to scientifically study Earth\u2019s nearest neighbor under the Artemis approach, and to test technologies to support human exploration to the Moon. In addition to the NASA payloads aboard, companies are also encouraged to fly their own instruments, such as lander cameras, as well as commercial payloads.",
+    "start_date": "2024-01-08",
+    "stop_date": ""
+  },
+  "geodesy": {
+    "name": "Geodesy",
+    "type": "Other Investigation",
+    "description": "Geodesy is the scientific field focused on accurately measuring and understanding the Earth's shape, orientation, and gravity. Pythagoras and Eratosthenes made early contributions, with Pythagoras suggesting a spherical Earth and Eratosthenes estimating its circumference. Modern understanding recognizes that the Earth's shape is influenced by various forces, including gravity, rotation, tides, plate tectonics, volcanism, and fluid motion. These factors are continually measured and modeled for historical analysis and predictions.",
+    "start_date": "-0580-01-0",
+    "stop_date": "2099-12-31"
+  },
+  "hot ion atmospheric escape cross section data": {
+    "name": "Hot Ion Atmospheric Escape Cross Section Data",
+    "type": "Other Investigation",
+    "description": "Initially started as part of the PDART 2014 efforts of Robert Johnson, this investigation is designed to collate results of modeling and laboratory work in atmospheric escape studies. Data associated with this project include cross section tables for different atmospheric species representing different chemical reactions occuring in the upper atmosphere of planets.",
+    "start_date": "2015-03-17",
+    "stop_date": ""
+  },
+  "dsn media calibration": {
+    "name": "DSN Media Calibration",
+    "type": "Other Investigation",
+    "description": "The DSN Media Calibration investigation is the set of observations and analyses used by the NASA Deep Space Network (DSN) to develop calibrations for the effects of the ionosphere, troposphere, and local weather on propagation of radio signals between DSN antennas and spacecraft. Although small, these effects are measurable and can change the apparent range to and velocity of spacecraft being tracked by the DSN.",
+    "start_date": "1950-01-01",
+    "stop_date": "2099-12-31"
+  },
+  "planetary boundary layer wind tunnel particle threshold": {
+    "name": "Planetary Boundary Layer Wind Tunnel Particle Threshold",
+    "type": "Other Investigation",
+    "description": "Initially started as part of the PDART 2014 efforts of Devon Burr, this investigation is designed to acculumate planetary boundary layer wind tunnel data for planetary analogs of Mars, Venus, Titan, and Earth (and potentially others) for the purpose of investigating particle entrainment threshold wind speed data. Particle entrainment threshold denotes the wind speed at which a particle of a given size and density will begin to move in the airflow. Historically Ronald Greeley and James D. Iversen setup a series of wind tunnels to run in various planetary analog environments to investigate basic parameters for planetary aeolian processes spanning 1970s-2010s. This work is carried on by numerous former students and colleagues expanding what is known about sand and dust movement by wind processes on multiple planetary bodies.",
+    "start_date": "2018-05-16",
+    "stop_date": ""
+  },
+  "ulysses": {
+    "name": "Ulysses",
+    "type": "Mission",
+    "description": "The Ulysses Mission was a joint ESA-NASA mission designed to orbit the Sun and study the space environment around it at all latitutdes. It launched in October of 1990, and the original mission was extended four times, until the spacecraft was ultimately shut down in the face of multiple hardware in June 2009.",
+    "start_date": "1990-10-06",
+    "stop_date": ""
+  },
+  "mariner 67": {
+    "name": "Mariner 67",
+    "type": "Mission",
+    "description": "The Mariner 67 mission, consisting of the Mariner 5 spacecraft, flew by Venus on 19 October 1967 at an altitude of 4094 km. It returned data data on both interplanetary and Venusian magnetic fields, charged particles, and plasmas, as well as radio refractivity and UV emissions of the Venusian atmosphere. Contact was lost on 7 December, and operations ended 5 November 1968.",
+    "start_date": "1967-06-14",
+    "stop_date": "1968-11-05"
+  },
+  "clps task order prime-1": {
+    "name": "CLPS Task Order PRIME-1",
+    "type": "Mission",
+    "description": "The Intuitive Machines 2 (IM-2, CLPS Task Order TO-Prime 1) mission launched a Nova-C lander, called Athena, on UT February 27, 2025. Athena landed on March 6, 2025 at (84.79S, 29.20E) in the Mons Mouton region in the South Pole region of the Moon. It carried three NASA instruments, and commercial cargo. NASA payloads included the LRA (Laser Retroreflector Array), and the payload suite Prime-1 (Polar Resources Ice Mining Experiment-1). PRIME-1 is a suite of two instruments, the TRIDENT drill (The Regolith Ice Drill for Exploring New Terrain) and MSolo (Mass Spectrometer observing lunar operations). MSolo is designed to identify and quantify volatiles, including those that emanate from the lander, drilling processes, and other payloads conducting operations on the surface. LRA is designed to serve as a fiducial marker of the lander on the lunar surface. MSolo and LRA have archived data in the PDS. The TRIDENT drill, a tech demo designed to demonstrate drilling into the lunar regolith, was unable to complete its science objectives due to the final roughly horizontal orientation of the lander, which prevented the drill from reaching the lunar surface. This payload has not archived data in the PDS.",
+    "start_date": "2025-02-27",
+    "stop_date": "2025-03-07"
+  },
+  "vega mission - vega 1": {
+    "name": "Vega Mission - Vega 1",
+    "type": "Mission",
+    "description": "The Vega program lead by the Soviet Union and including a number of European partners, was designed to investigate Venus and then to flyby Comet 1P/Halley. The name \"VeGa\" is a combination of the first two (Russian) letters of \"Venus\" and \"Halley\". It included twin spacecraft designated \"Vega 1\" and \"Vega 2\". The Vega 1 spacecraft Launched on 15 December 1984, delivered a balloon into the Venusian atmosphere on 11 June 1985, and encountered Comet Halley on 6 March 1986.",
+    "start_date": "1984-12-15",
+    "stop_date": "1986-04-01"
+  },
+  "vega mission - vega 2": {
+    "name": "Vega Mission - Vega 2",
+    "type": "Mission",
+    "description": "The Vega program lead by the Soviet Union and including a number of European partners, was designed to investigate Venus and then to flyby Comet 1P/Halley. The name \"VeGa\" is a combination of the first two (Russian) letters of \"Venus\" and \"Halley\". It included twin spacecraft designated \"Vega 1\" and \"Vega 2\". The Vega 2 spacecraft Launched on 21 December 1984, delivered a balloon into the Venusian atmosphere on 15 June 1985, and encountered Comet Halley on 9 March 1986.",
+    "start_date": "1984-12-21",
+    "stop_date": "1986-04-01"
+  },
+  "venera 10": {
+    "name": "Venera 10",
+    "type": "Mission",
+    "description": "The Soviet Venera 10 mission and its twin Venera 9 launched five days apart. Each comprised an orbiter and an attached descent craft (lander probe). The orbiter relayed communications for the lander and studied the atmosphere and cloud layers of Venus. The descent craft made in-situ measurements made in-situ measurements of the Venus atmosphere and surface.",
+    "start_date": "1975-06-14",
+    "stop_date": ""
+  },
+  "venera 11": {
+    "name": "Venera 11",
+    "type": "Mission",
+    "description": "Venera 11 and Venera 12 were twin Soviet missions, launched five days apart, to study Venus and the interplanetary medium. Both missions comprised a flight platform (bus) and a descent craft (lander probe). The flight platform had instruments to study solar-wind composition, gamma-ray bursts, ultraviolet radiation, and the electron density of the ionosphere of Venus. The lander probe carried instruments to study the characteristics and composition of the atmosphere and surface of Venus.",
+    "start_date": "1978-09-09",
+    "stop_date": "1980-02-01"
+  },
+  "venera 13": {
+    "name": "Venera 13",
+    "type": "Mission",
+    "description": "The Soviet Venera 13 mission returned the first color images and audio recordings from the surface of Venus. Along with the Venera 14 mission, it formed a pair of identical spacecraft, each comprising a flyby carrier bus and a descent craft (lander probe). Launched five days apart, the objective of the missions was to make in-situ studies of the Venus atmosphere and surface.",
+    "start_date": "1981-10-30",
+    "stop_date": "1983-04-25"
+  },
+  "venera 14": {
+    "name": "Venera 14",
+    "type": "Mission",
+    "description": "The Soviet Venera 14 mission and its twin Venera 13 formed a pair of identical spacecraft, each comprising of a flyby carrier bus and a descent craft (lander probe), built to take advantage of the 1981 Venus launch opportunity. Launched five days apart, the objective of the missions was to make in-situ studies of the Venus atmosphere and surface.",
+    "start_date": "1981-11-04",
+    "stop_date": "1983-04-09"
+  },
+  "lunar simulants jsc-1a and lms-1 far-ultraviolet reflectance data bundle": {
+    "name": "Lunar Simulants JSC-1A and LMS-1 Far-ultraviolet Reflectance Data Bundle",
+    "type": "Individual Investigation",
+    "description": "This data bundle contains all of the data presented in the paper \"Far-Ultraviolet Photometric Characteristics of JSC-1A and LMS-1 Lunar Regolith Simulants: Comparative Investigations With Apollo 10084\" as published in Volume 127, Issue 11 of the Journal of Geophysical Research: Planets. The purpose of this study was to measure the far-ultraviolet (FUV) reflectance properties of the lunar simulants JSC-1A and LMS-1 and compare these properties to those found for the Apollo 11 soil sample 10084 (published previously by U. Raut et al.). Comparing the FUV reflectance of these two simulants and the lunar soil sample provided an opportunity to disentangle the potential contributions of mineralogy and space weathering to lunar soil FUV reflectance. This study's results indicated that titanium-bearing mineral content strongly affects the overall brightness of these soils in the FUV, while space weathering features may correlate to differences in the scattering anisotropy of the soils.",
+    "start_date": "2017-11-20",
+    "stop_date": "2021-09-15"
+  },
+  "venera 2": {
+    "name": "Venera 2",
+    "type": "Mission",
+    "description": "Venera 2, the second Soviet mission to Venus, aimed to study the planet\u2019s atmosphere, magnetic field, radiation, and surface temperature, and to photograph it during approach. The spacecraft returned sporadic data during its three-month cruise. Venera 2 flew by Venus on 27 February 1966 but returned no data because communications failed about two weeks earlier.",
+    "start_date": "1965-11-12",
+    "stop_date": ""
+  },
+  "venera 3": {
+    "name": "Venera 3",
+    "type": "Mission",
+    "description": "Venera 3 mission intended to explore Venus and land on the surface. The Soviet Venera 3 mission comprised a carrier bus and an attached descent craft (lander probe). The lander probe impacted Venus on 1 March 1966, making Venera 3 the first spacecraft to reach the surface of another planet. However, the communications systems had failed on 16 February, before planetary data could be returned.",
+    "start_date": "1965-11-16",
+    "stop_date": "1966-03-01"
+  },
+  "venera 4": {
+    "name": "Venera 4",
+    "type": "Mission",
+    "description": "The Soviet Venera 4 launched on 12 June 12 1967 with a carrier bus and lander probe to study Venus. The bus carried a magnetometer, cosmic ray detectors, particle detectors, and hydrogen and oxygen indicators. The lander had thermometers, barometer, radio altimeter, density gauge, gas analyzers, and radio transmitters. On 18 October it became the first probe to transmit data from another planet's atmosphere.",
+    "start_date": "1967-06-12",
+    "stop_date": ""
+  },
+  "venera 5": {
+    "name": "Venera 5",
+    "type": "Mission",
+    "description": "The Soviet Venera 5 mission and its twin, the Venera 6 mission, formed a pair of identical spacecraft, each consisting of a carrier bus and a descent craft (lander probe). Launched five days apart, the objective of the missions was to make in-situ studies of the Venus atmosphere and study the interplanetary medium.",
+    "start_date": "1969-01-05",
+    "stop_date": ""
+  },
+  "venera 6": {
+    "name": "Venera 6",
+    "type": "Mission",
+    "description": "The Soviet Venera 6 mission and its twin, the Venera 5 mission, formed a pair of identical spacecraft, each consisting of a carrier bus and a descent craft (lander probe). Launched five days apart, the objective of the missions was to make in-situ studies of the Venus atmosphere and study the interplanetary medium.",
+    "start_date": "1969-01-10",
+    "stop_date": ""
+  },
+  "venera 7": {
+    "name": "Venera 7",
+    "type": "Mission",
+    "description": "The Soviet Venera 7 mission consisted of a carrier bus and a descent craft (lander probe). The objectives of the mission were to return data from the Venus atmosphere, make a landing on the surface, and continue to return data after landing. Venera 7 descent craft was the first spacecraft to return data after landing on another planet.",
+    "start_date": "1970-08-17",
+    "stop_date": ""
+  },
+  "venera 8": {
+    "name": "Venera 8",
+    "type": "Mission",
+    "description": "The Soviet Venera 8 mission consisted of a carrier bus and a descent craft (lander probe). The objectives of the mission were to make a more sophisticated set of scientific measurements at the Venus surface, including studies of the Venus regolith.",
+    "start_date": "1972-03-27",
+    "stop_date": ""
+  },
+  "venera 9": {
+    "name": "Venera 9",
+    "type": "Mission",
+    "description": "The Soviet Venera 9 mission was the first mission to return pictures from the surface of Venus and the first to go into orbit around another planet. Venera 9 and its twin Venera 10 launched five days apart. Each comprised an orbiter and an attached descent craft (lander probe). The orbiter relayed communications for the lander and studied the atmosphere and cloud layers of Venus. The descent craft made in-situ measurements in the Venus atmosphere and on the surface.",
+    "start_date": "1975-06-08",
+    "stop_date": "1975-12-25"
+  },
+  "atmospheric modeling annex individual investigation": {
+    "name": "Atmospheric Modeling Annex Individual Investigation",
+    "type": "Individual Investigation",
+    "description": "Investigation product for use with the PDS Atmospheres Node (ATM) Atmospheric Modeling Annex (AMA) submissions.",
+    "start_date": "2025-09-04",
+    "stop_date": ""
+  },
+  "chandrayaan-1 mission": {
+    "name": "Chandrayaan-1 Mission",
+    "type": "Mission",
+    "description": "Chandrayaan-1 was launched on 22nd October, 2008 using a variant of the Indian Polar Satellite Launch Vehicle (PSLV-XL). The spacecraft was inserted into an elliptical lunar polar orbit on 8th November and was placed in the desired 100km orbit on 12th November. The Chandrayaan-1 mission successfully operated until 28th August, 2009, when a communication failure led to loss of contact and the mission was called off on 30th August. Chandrayaan-1 marks the beginning of India's planetary exploration programme initiated by the Indian Space Research Organization (ISRO). Apart from five Indian built payloads (TMC, HySI, LLRI, HEX and MIPS), it also carried two Indo-Foreign collaborative payloads (C1XS and SARA) and four foreign payloads (M3, mini-SAR, SIR-2 and RADOM). Chandrayaan-1 mission represents a truly international effort in planetary exploration. After reaching the designated lunar polar orbit and checks of various spacecraft sub-systems and parameters, the Moon Impact Probe (MIP) was released on 14th November to reach a designated area near the South Pole. Images captured by the camera on board MIP allowed identification of its impact point. This followed commissioning of the scientific payloads. One of the payloads, the Radiation Dose Monitor (RADOM), was switched on soon after lift-off and the Terrain Mapping Camera (TMC) was commissioned during one of the early earth bound orbits. The other eight payloads were commissioned one by one between November 16 and December 9. The mission operation was relatively smooth until April 26th, 2009, when the failure of star sensor led to the decision to raise the spacecraft orbit from 100 to 200 km to reduce the number of maneuvers needed for orbit maintenance. On August 28 2009, loss of communication with the spacecraft led to termination of the mission. Mission Objective - To realize the mission goal of harnessing the science payloads, lunar craft and the launch vehicle with suitable ground support systems including Deep Space Network station. - To realize the integration and testing, launching and achieving lunar polar orbit of about 100 km, in-orbit operation of experiments, communication/ telecomm and, telemetry data reception, quick look data and archival for scientific investigation by identified group of scientists.",
+    "start_date": "2008-10-22",
+    "stop_date": "2009-08-28"
+  },
+  "venera 15": {
+    "name": "Venera 15",
+    "type": "Mission",
+    "description": "The Soviet Venera 15 and Venera 16 missions consisted of two identical spacecraft that used 8 cm band side-looking radar to map the surface of Venus. The spacecraft entered nearly polar orbits a day apart with orbital planes shifted 4.45 deg, enabling reimaging capabilities. Both had periapsis at 62 deg N latitude and together mapped from the north pole to 30 deg N latitude with 1-2 km resolution over 8 months of operations.",
+    "start_date": "1983-06-02",
+    "stop_date": "1985-01-05"
+  },
+  "asteroid terrestrial-impact last alert system (atlas)": {
+    "name": "Asteroid Terrestrial-impact Last Alert System (ATLAS)",
+    "type": "Observing Campaign",
+    "description": "ATLAS is an asteroid impact early warning system developed by the University of Hawaii and funded by NASA. It consists of four telescopes (Hawaii \u00d72, Chile, South Africa), which automatically scan the whole sky several times every night looking for moving objects.",
+    "start_date": "2015-01-01",
+    "stop_date": ""
+  },
+  "osiris-apex mission": {
+    "name": "OSIRIS-APEX Mission",
+    "type": "Mission",
+    "description": "The OSIRIS-APEX mission is an extended mission of the OSIRiS-REx mission. APEX uses the capable OSIRIS-REX spacecraft with its complete instrument suite. APEX will distantly observe Apophis during the 2029 Earth encounter and capture its evolution in real time, revealing the consequences of an asteroid undergoing tidal disturbance by a major planet. Beginning in 2029 June, the spacecraft\u2019s instrument suite will begin providing high resolution data of this \u201cstony\u201d asteroid \u2014 advancing knowledge of these objects and their connection to meteorites.",
+    "start_date": "2023-09-25",
+    "stop_date": ""
+  },
+  "voyager": {
+    "name": "Voyager",
+    "type": "Mission",
+    "description": "The Voyager 1 and 2 spacecraft, launched in 1977, are on a mission to explore interstellar space, well beyond Pluto, after having successfully studied Jupiter and Saturn. Voyager 1 entered interstellar space in August 2012, followed by Voyager 2 in November 2018. Both spacecraft are still transmitting scientific data back to Earth via the Deep Space Network. They've made significant discoveries, such as active volcanoes on Jupiter's moon Io and details about Saturn's rings, and Voyager 2 is the only spacecraft to have visited Uranus and Neptune. Their ongoing mission, the Voyager Interstellar Mission, aims to explore the outer edge of the Sun's influence and beyond.",
+    "start_date": "1972-07-01",
+    "stop_date": ""
+  },
+  "lunar crater observation and sensing satellite": {
+    "name": "Lunar Crater Observation and Sensing Satellite",
+    "type": "Mission",
+    "description": "LCROSS launched as a secondary payload with Lunar Reconnaissance Orbiter (LRO) on June 18, 2009. After trans-lunar injection, LRO separated and performed its mission. The LCROSS Shepherding Spacecraft (SSC) remained attached to the spent Atlas upper stage, called the Centaur. Over 112 days, the Shepherding Spacecraft adjusted the Centaur's course to bring it to an impact within the Cabeus Crater near the South Pole of the moon. It impacted on October 9, 2009. LCROSS used the Centaur as a 2300 kg kinetic impactor with more than 200 times the energy of the Lunar Prospector (LP) impact to excavate more than 250 metric tons of lunar regolith. The resulting ejecta cloud was observed from a number of Lunar-orbital and Earth-based assets, and the LCROSS spacecraft. After releasing the Centaur, the SSC flew toward the impact plume, sending real-time data to characterize the morphology, evolution and composition of the plume with a suite of cameras and spectrometers. The SSC then became a 700 kg impactor itself, providing a second opportunity to study the nature of the Lunar Regolith.",
+    "start_date": "2009-06-18",
+    "stop_date": "2009-10-09"
+  }
+}

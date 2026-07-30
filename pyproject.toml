@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools >= 68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pds-tars"
+version = "1.0.0"
+requires-python = ">=3.13"
+dependencies = [
+    "pds.peppi==0.9.0",
+    "PyYAML==6.0.3",
+    "Jinja2==3.1.6",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[project.scripts]
+pipeline-build = "pds_tars.build:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+pds_tars = ["pipeline_rules.yaml"]

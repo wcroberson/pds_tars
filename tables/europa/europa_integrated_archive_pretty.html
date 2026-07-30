@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Europa Archive</title>
+  <style>
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,"Segoe UI",Arial,sans-serif;
+       margin:0;padding:16px 24px;background:#f0f2f5;color:#1a1a2e}
+  h1{font-size:1.4rem;margin:0 0 4px;font-weight:700}
+  .datestamp{color:#555;font-size:.82em;margin:0 0 14px}
+  .legend{display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+          margin-bottom:18px;font-size:.82em}
+  .legend-label{font-weight:600;color:#444}
+  .legend-item{display:flex;align-items:center;gap:5px}
+  .swatch{width:28px;height:16px;border-radius:8px;display:inline-block}
+  .table-wrap,.gb-table-wrap{overflow:auto;border-radius:6px;
+                              box-shadow:0 1px 4px rgba(0,0,0,.15)}
+  .gb-table-wrap{margin-top:24px}
+  table{border-collapse:collapse;table-layout:fixed;white-space:nowrap;
+        background:#fff}
+  .centered table{margin:0 auto}
+  th,td{border:1px solid #d8dde4;padding:4px 8px;vertical-align:top}
+  th{background:#e8ecf0;font-weight:600;font-size:.8em;
+     position:sticky;top:0;z-index:1;text-align:center}
+  .cat-col{position:sticky;left:0;z-index:2;background:#f5f7fa;
+           font-size:.85em;font-weight:500;
+           white-space:normal;line-height:1.35;vertical-align:middle}
+  thead th.cat-col{z-index:3;background:#e8ecf0}
+  .table-title-row th{position:static;background:#2b4f6e;color:#e8f0f8;
+    font-size:.75em;font-weight:700;text-align:center;text-transform:uppercase;
+    letter-spacing:.1em;padding:8px 12px}
+  /* Section banners: main table only (show_banners=true) - the ground-based
+     table reads fine as a flat "Section - Category" list without them. */
+  .banner td{background:#2b4f6e;color:#e8f0f8;font-weight:700;
+             font-size:.75em;letter-spacing:.1em;text-transform:uppercase;
+             text-align:center;padding:6px 10px}
+  .section-arrow{display:inline-block;transition:transform .15s;
+                 margin-right:6px;font-size:.85em;opacity:.7}
+  .banner{cursor:pointer}
+  .banner.section-collapsed .section-arrow{transform:rotate(-90deg)}
+  .collapsed{display:none}
+  #tip{display:none;position:fixed;background:#222;color:#fff;
+       padding:4px 10px;border-radius:4px;font-size:.82em;
+       pointer-events:none;z-index:9999;max-width:520px;
+       white-space:pre-line;line-height:1.4}
+  .legend-item{cursor:pointer;user-select:none;transition:opacity .15s}
+  .legend-item.filter-off{opacity:.3}
+  .legend-item.filter-off .swatch{box-shadow:inset 0 0 0 1px #999}
+  .filter-bar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+              margin-bottom:10px;font-size:.8em}
+  .filter-group-label{font-weight:600;color:#444;white-space:nowrap}
+  .filter-btn{padding:2px 8px;border:1px solid #bbb;border-radius:10px;
+              cursor:pointer;font-size:.8em;background:#f0f0f0;
+              transition:opacity .15s,background .15s}
+  .filter-btn:not(.active){opacity:.35;background:#e0e0e0}
+  .show-all-btn{margin-left:8px;background:#eef;border-color:#99b}
+  .chip-hidden{display:none!important}
+  .tech-btn:not(.active){opacity:1;background:#f0f0f0;border-color:#ccc}
+  .tech-btn.active{background:#2e6ea0;color:#fff;border-color:#1e5088}
+  .chip-count{font-size:.7em;opacity:.8;margin-left:4px;font-weight:400;
+              background:rgba(0,0,0,.18);border-radius:8px;padding:0 4px}
+  .chip-status{display:inline-block;width:7px;height:7px;border-radius:50%;
+               background:#f0a000;margin-left:4px;vertical-align:middle;
+               flex-shrink:0}
+  /* Pill timeline: every instrument is one bar, colspan'd across its whole
+     year range (_category_lanes() in Python) - a one-year instrument is
+     colspan=1, filling its single cell exactly like the old small chip; a
+     multi-year one is the same pill just wider, instead of a badge plus a
+     separately-drawn connector line. Because the colspan cell IS the bar's
+     full width, there's nothing to overflow into a neighboring column and
+     no cross-cell z-index/background seam to worry about. */
+  .pill-col{padding:2px 3px}
+  .chip-pill{display:block;width:100%;box-sizing:border-box;
+             padding:3px 8px;border-radius:13px;font-size:.75em;font-weight:700;
+             white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+             text-decoration:none;text-align:left}
+  a.chip-pill{cursor:pointer}
+  span.chip-pill{cursor:default}
+  /* Still-active instrument (PDS's year-3000 stop-date sentinel, capped at
+     today's year - see current_year_col): a literal end pill would be a
+     false end date, so the bar's right edge is a point instead, signaling
+     "continues past here." Only the right side is clipped (the polygon's
+     left edge runs straight down the bounding box, x=0 to x=0, so it
+     doesn't cut into anything border-radius already excluded there) -
+     border-radius keeps rounding the left end normally. */
+  .chip-ongoing{clip-path:polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%);
+                padding-right:22px}
+  .chip-search{padding:2px 8px;border:1px solid #bbb;border-radius:10px;
+               font-size:.8em;width:160px;font-family:inherit;background:#fff;
+               margin-left:8px}
+  .missions-panel{background:#f7f9fc;border:1px solid #dce3ea;border-radius:10px;
+                  padding:14px 18px;margin-bottom:18px}
+  .missions-heading{font-size:.68em;font-weight:700;letter-spacing:.12em;
+                    color:#7a8899;margin-bottom:10px;text-transform:uppercase}
+  .missions-grid{display:flex;flex-wrap:wrap;gap:8px}
+  .mission-card{display:inline-flex;align-items:center;padding:5px 14px;
+                border-radius:20px;font-size:.82em;font-weight:600;
+                color:var(--mc-text,#fff);background:var(--mc-color,#4a5568);
+                text-decoration:none;cursor:pointer;white-space:nowrap;
+                box-shadow:0 0 0 2px transparent;
+                transition:filter .15s,box-shadow .15s;
+                position:relative;overflow:hidden}
+  .mission-card:hover{filter:brightness(1.12);box-shadow:0 0 0 2px rgba(255,255,255,.4)}
+  a.mission-card:focus{outline:2px solid #2b6cb0;outline-offset:2px}
+  /* Mixed-type pill (e.g. Galileo Orbiter+Probe): flat, clip-path-cut solid
+     bands rather than a gradient - see _split_bands() for why. mc-bg holds
+     the stacked bands below the label; mc-type sits above them via z-index.
+     Hover ring uses box-shadow, not border - border's padding-box would
+     misalign with inset:0's border-box, letting the --mc-color fallback
+     show through around the pill's edges. */
+  .mc-bg{position:absolute;inset:0;z-index:0}
+  .mc-band{position:absolute;inset:0;display:block;cursor:pointer}
+  .mc-band:focus{outline:2px solid #2b6cb0;outline-offset:-2px;z-index:2}
+  .mission-card .mc-type{position:relative;z-index:1;pointer-events:none}
+  /* Mixed-type pill's label is its own link (see the mixed-pill template
+     comment) - override the pointer-events:none above so clicks land on
+     its default_type URL instead of falling through to whichever
+     diagonal band happens to be under the cursor. No visual difference
+     from a normal (single-type) mission-card label otherwise - it's
+     still just a link, styled to match. */
+  .mission-card.mixed .mc-type{pointer-events:auto;color:inherit;
+                                text-decoration:none}
+  .mission-card.mixed .mc-type:focus{outline:2px solid #2b6cb0;outline-offset:1px}
+
+  #main-table-wrap table,#gb-table-wrap table{width:392px}
+
+  .gb-has-bg{background-image:url('../../background_images/earth_background.JPG');background-size:cover;background-position:left center;}
+  .gb-has-bg{background-color:rgba(255,255,255,0.30)}
+  .gb-has-bg table{background:transparent}
+  .gb-has-bg td{background:rgba(255,255,255,0.30)}
+  .gb-has-bg .cat-col{background:#f5f7fa}
+  .gb-has-bg thead th.cat-col{background:#e8ecf0}</style>
+</head>
+<body>
+  <h1>Europa Archive</h1>
+  <p class="datestamp">Generated 2026-07-29</p>
+
+  
+  
+  <div class="missions-panel">
+    <div class="missions-heading">MISSIONS IN THIS TABLE</div>
+    <div class="missions-grid">
+    
+    
+    <a class="mission-card" href="https://science.nasa.gov/mission/galileo/" target="_blank" rel="noopener noreferrer" data-tip="Galileo — Orbiter
+Active: 1977–2003
+The Galileo was sent to Jupiter to study the planet and its moons. It was delivered to space on Space Shuttle Atlantis on October 18, 1989. It sent an atmospheric probe into Jupiter&#39;s atmosphere to study the composition." style="--mc-color:#4477AA;--mc-text:#222">
+      <span class="mc-type">Galileo</span>
+    </a>
+    
+    
+    </div>
+  </div>
+  
+
+  
+  <div class="legend">
+    <span class="legend-label">Mission type:</span>
+    
+    
+    <span class="legend-item mtype-toggle active" data-mtype="orbiter">
+      <span class="swatch" style="background:#4477AA"></span>Orbiter
+    </span>
+    
+  </div>
+
+  
+  
+  <div class="filter-bar">
+    
+    <span class="filter-group-label">Node:</span>
+    
+    <button class="filter-btn node-btn active" data-node="PDS_ATM" type="button">ATM</button>
+    
+    
+    
+    <button class="filter-btn show-all-btn" id="show-all" type="button">Show all</button>
+    <input type="text" id="chip-search" class="chip-search" placeholder="Search instruments…" autocomplete="off">
+  </div>
+  
+
+  
+  
+
+  
+  <div id="main-table-wrap" class="table-wrap">
+    <table>
+      
+      <colgroup>
+        <col style="width:260px">
+        
+        <col style="width:66px">
+        
+        <col style="width:66px">
+        
+      </colgroup>
+      <thead>
+        <tr class="table-title-row">
+          <th colspan="3">Europa Integrated Archive Table</th>
+        </tr>
+        <tr>
+          <th class="cat-col">Category</th>
+          
+          <th class="yr-col">1996</th>
+          
+          <th class="yr-col">1997</th>
+          
+        </tr>
+      </thead>
+      <tbody>
+        
+        
+        
+        <tr class="banner" data-section-banner="Electromagnetic Spectrum">
+          <td colspan="3"><span class="section-arrow">▼</span>Electromagnetic Spectrum</td>
+        </tr>
+        
+        
+        <tr data-section="Electromagnetic Spectrum">
+          
+          <td class="cat-col" rowspan="1">IR</td>
+          
+          
+          
+          <td class="yr-col pill-col" colspan="2">
+            
+            <a class="chip chip-pill" data-mtype="orbiter"
+               data-nodes="PDS_ATM" data-tech=""
+               data-abbr="PPR" data-count="2"
+               data-tc='{}'
+               href="https://science.nasa.gov/mission/galileo/" target="_blank" rel="noopener noreferrer"
+               style="background:#4477AA;color:#222"
+               data-tip="PPR — Photopolarimeter Radiometer (PPR) for Galileo Orbiter
+Galileo (Orbiter)
+2 collections
+1996–1997">PPR<span class="chip-count">2</span></a>
+            
+          </td>
+          
+          
+        </tr>
+        
+        
+        
+        
+        <tr class="banner" data-section-banner="Atmosphere">
+          <td colspan="3"><span class="section-arrow">▼</span>Atmosphere</td>
+        </tr>
+        
+        
+        <tr data-section="Atmosphere">
+          
+          <td class="cat-col" rowspan="1">Clouds</td>
+          
+          
+          
+          <td class="yr-col pill-col" colspan="2">
+            
+            <a class="chip chip-pill" data-mtype="orbiter"
+               data-nodes="PDS_ATM" data-tech=""
+               data-abbr="PPR" data-count="2"
+               data-tc='{}'
+               href="https://science.nasa.gov/mission/galileo/" target="_blank" rel="noopener noreferrer"
+               style="background:#4477AA;color:#222"
+               data-tip="PPR — Photopolarimeter Radiometer (PPR) for Galileo Orbiter
+Galileo (Orbiter)
+2 collections
+1996–1997">PPR<span class="chip-count">2</span></a>
+            
+          </td>
+          
+          
+        </tr>
+        
+        
+      </tbody>
+    </table>
+  </div>
+  
+
+  
+
+  <div id="tip"></div>
+
+  
+  <script>
+
+  let _searchTerm='';
+
+  const tip=document.getElementById('tip');
+  document.addEventListener('mouseover',e=>{
+    const el=e.target.closest('[data-tip]');
+    if(el){tip.textContent=el.dataset.tip;tip.style.display='block';}
+    else tip.style.display='none';
+  });
+  document.addEventListener('mousemove',e=>{
+    if(tip.style.display==='block'){
+      tip.style.left=(e.clientX+14)+'px';
+      tip.style.top=(e.clientY-8)+'px';
+    }
+  });
+
+  // Center a table within its wrap when it fits without horizontal
+  // scrolling; leave it left-aligned when it's wide enough to need scroll,
+  // so the table never starts partly off-screen in both directions.
+  function centerTablesThatFit(){
+    document.querySelectorAll('.table-wrap, .gb-table-wrap').forEach(wrap=>{
+      const table=wrap.querySelector('table');
+      if(!table) return;
+      wrap.classList.toggle('centered', table.scrollWidth<=wrap.clientWidth+1);
+    });
+  }
+  window.addEventListener('load', centerTablesThatFit);
+  window.addEventListener('resize', centerTablesThatFit);
+
+  // Ground-based table (if present) shares the main table's year columns -
+  // keep them scrolling together so it reads as one continuous timeline
+  // split across two tables. The two tables' row sets don't have to match
+  // (each shows only the categories it has real data for), so there's no
+  // row-height syncing to do - only the columns need to line up, which the
+  // shared colgroup (see render_matrix()) already guarantees.
+  const mainTableWrap = document.getElementById('main-table-wrap');
+  const gbTableWrap    = document.getElementById('gb-table-wrap');
+  if (mainTableWrap && gbTableWrap) {
+    let syncingScroll = false;
+    function syncScroll(from, to) {
+      if (syncingScroll) return;
+      syncingScroll = true;
+      to.scrollLeft = from.scrollLeft;
+      syncingScroll = false;
+    }
+    mainTableWrap.addEventListener('scroll', () => syncScroll(mainTableWrap, gbTableWrap));
+    gbTableWrap.addEventListener('scroll', () => syncScroll(gbTableWrap, mainTableWrap));
+  }
+
+  // applyFilters: hide/show individual chips based on all active filters.
+  // Mission type and node buttons are opt-out (all active by default; clicking
+  // removes that type).  Technique buttons are opt-in (none active by default;
+  // clicking adds that technique to the filter).  When no technique is selected
+  // there is no technique constraint and all chips pass.  When at least one
+  // technique is selected, only chips tagged with a matching technique pass;
+  // chips with no technique tag are hidden.
+  function applyFilters(){
+    const offMtypes=new Set([...document.querySelectorAll('.mtype-toggle:not(.active)')].map(el=>el.dataset.mtype));
+    const onNodes  =new Set([...document.querySelectorAll('.node-btn.active')].map(el=>el.dataset.node));
+    const onTechs  =new Set([...document.querySelectorAll('.tech-btn.active')].map(el=>el.dataset.tech));
+
+    document.querySelectorAll('.chip').forEach(chip=>{
+      const mtypeOk = !offMtypes.has(chip.dataset.mtype);
+
+      const nodeVals=(chip.dataset.nodes||'').split(',').filter(Boolean);
+      const nodeOk = onNodes.size===0 || nodeVals.length===0 || nodeVals.some(n=>onNodes.has(n));
+
+      const techVals=(chip.dataset.tech||'').split(',').filter(Boolean);
+      const techOk  = onTechs.size===0 || techVals.some(t=>onTechs.has(t));
+
+      const searchOk = !_searchTerm ||
+        (chip.dataset.abbr||'').toLowerCase().includes(_searchTerm) ||
+        (chip.dataset.tip||'').toLowerCase().includes(_searchTerm);
+
+      chip.classList.toggle('chip-hidden', !(mtypeOk && nodeOk && techOk && searchOk));
+    });
+
+    // Update each chip's count badge to reflect the active technique filter.
+    // If no technique is selected, show the full collection count; if one or
+    // more techniques are selected, sum the per-technique counts stored on the
+    // chip as a JSON object in data-tc (keyed by the full technique name, so
+    // multi-word technique names work without any attribute-name mangling).
+    document.querySelectorAll('.chip').forEach(chip=>{
+      const badge=chip.querySelector('.chip-count');
+      if(!badge) return;
+      if(onTechs.size===0){
+        badge.textContent=chip.dataset.count||'';
+      } else {
+        const counts=JSON.parse(chip.dataset.tc||'{}');
+        let n=0;
+        onTechs.forEach(t=>{ if(counts[t]) n+=counts[t]; });
+        badge.textContent=n>0?String(n):(chip.dataset.count||'');
+      }
+    });
+
+  }
+
+  // Legend items toggle mission type visibility on click.
+  document.querySelectorAll('.mtype-toggle').forEach(item=>{
+    item.addEventListener('click',()=>{
+      item.classList.toggle('active');
+      item.classList.toggle('filter-off');
+      applyFilters();
+    });
+  });
+
+  // Node and technique filter buttons.
+  document.querySelectorAll('.node-btn, .tech-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      btn.classList.toggle('active');
+      applyFilters();
+    });
+  });
+
+  // "Show all" resets every filter: node buttons back to all-active (opt-out
+  // default); technique buttons back to none-active (opt-in default = no filter);
+  // search box cleared.
+  const showAllBtn=document.getElementById('show-all');
+  if(showAllBtn) showAllBtn.addEventListener('click',()=>{
+    document.querySelectorAll('.mtype-toggle').forEach(el=>{el.classList.add('active');el.classList.remove('filter-off');});
+    document.querySelectorAll('.node-btn').forEach(el=>el.classList.add('active'));
+    document.querySelectorAll('.tech-btn').forEach(el=>el.classList.remove('active'));
+    const s=document.getElementById('chip-search');
+    if(s){s.value='';_searchTerm='';}
+    applyFilters();
+  });
+
+  // Text search: filter chips by abbreviation or tooltip text as you type.
+  const searchEl=document.getElementById('chip-search');
+  if(searchEl) searchEl.addEventListener('input',()=>{
+    _searchTerm=searchEl.value.trim().toLowerCase();
+    applyFilters();
+  });
+
+  // Collapsible section banners (main table only - the ground-based table
+  // has none): click to fold/unfold the rows below.
+  document.querySelectorAll('.banner[data-section-banner]').forEach(bannerRow=>{
+    bannerRow.addEventListener('click',()=>{
+      const name=bannerRow.dataset.sectionBanner;
+      const collapsed=bannerRow.classList.toggle('section-collapsed');
+      document.querySelectorAll('tr[data-section]').forEach(tr=>{
+        if(tr.dataset.section===name) tr.classList.toggle('collapsed',collapsed);
+      });
+    });
+  });
+
+
+  </script>
+</body>
+</html>

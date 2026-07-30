@@ -1,0 +1,959 @@
+# ── Category vocabulary ────────────────────────────────────────────────────────
+# Display categories grouped by section (drives the GUI checkboxes and the
+# output table banners). Add a row here plus matching rules under
+# category_rules below; add a new section by adding a key here and rules for
+# each of its labels.
+
+sections:
+
+  Electromagnetic Spectrum:
+    - Radio
+    - Radar
+    - Microwave
+    - IR
+    - Visual
+    - UV
+    - X-Rays
+    - Gamma Rays
+
+  Particles & Fields:
+    - Altimetry
+    - Gravitational Fields
+    - Magnetic Fields
+    - Electric Fields
+    - Plasma
+    - Plasma Waves
+    - Electron Temperature
+    - Energetic Particles
+    - Neutrons
+    - Cosmic Rays
+
+  Atmosphere:
+    - Clouds
+    - Winds
+    - Isotopic Ratios
+    - Density
+    - Atmospheric Composition
+    - Temperature & Pressure Profiles
+    - Ionosphere
+    - Exosphere
+
+  Additional Categories:
+    - Dust
+
+# ── Detection rules ────────────────────────────────────────────────────────────
+# Each category maps to a list of rules, evaluated in order; any match assigns
+# the category. attribute_keyword matches keyword against one or more PDS4
+# fields (title, discipline, facet1, facet2, wavelength_range, description,
+# domain), optionally narrowed by exclude_keyword/exclude_investigation.
+# hardcoded_instruments matches exact registry display names as a last
+# resort (no exclude_keyword — not evaluated for this type).
+
+category_rules:
+
+  # ── Electromagnetic Spectrum ──────────────────────────────────────────────────
+
+  Radio:
+    - type: attribute_keyword
+      fields: [title]
+      keyword: radio
+      exclude_keyword: [radiometer]
+    - type: attribute_keyword
+      fields: [discipline, facet1, facet2]
+      keyword: radio science
+    - type: attribute_keyword
+      fields: [wavelength_range]
+      keyword: radio
+
+  Radar:
+    - type: attribute_keyword
+      fields: [title]
+      keyword: radar
+    - type: attribute_keyword
+      fields: [discipline, facet1, facet2]
+      keyword: radar
+
+  Microwave:
+    - type: attribute_keyword
+      fields: [title]
+      keyword: microwave
+    - type: attribute_keyword
+      fields: [discipline, facet1, facet2, wavelength_range]
+      keyword: microwave
+    - type: attribute_keyword
+      fields: [wavelength_range]
+      keyword: submillimeter
+
+  IR:
+    - type: attribute_keyword
+      fields: [title]
+      keyword: infrared
+    - type: attribute_keyword
+      fields: [discipline, facet1, facet2, wavelength_range]
+      keyword: infrared
+    - type: hardcoded_instruments
+      names:
+        - "Mars Global Surveyor Spacecraft Thermal Emission Spectrometer (TES)"
+        - "Mars Exploration Rover Spirit Miniature Thermal Emission Spectrometer (MINI-TES)"
+        - "Mars Exploration Rover Opportunity Miniature Thermal Emission Spectrometer (MINI-TES)"
+    - type: hardcoded_instruments
+      names:
+        - "Solar Flux Radiometer for Pioneer Venus Large Probe"
+        - "Net Flux Radiometer for Pioneer Venus Small Probe (Day)"
+        - "Net Flux Radiometer for Pioneer Venus Small Probe (Night)"
+        - "Net Flux Radiometer for Pioneer Venus Small Probe (North)"
+    - type: hardcoded_instruments
+      names:
+        - "Net Flux Radiometer (NFR) for Galileo Probe"
+    - type: hardcoded_instruments
+      names:
+        - "Imaging Science Subsystem - Narrow Angle (ISSNA) for CO"
+        - "Imaging Science Subsystem - Wide Angle (ISSWA) for CO"
+    - type: hardcoded_instruments
+      names:
+        - "Photopolarimeter Radiometer (PPR) for Galileo Orbiter"
+    - type: attribute_keyword
+      fields: [description]
+      keyword: irtf photometry of io
+
+  Visual:
+    - type: attribute_keyword
+      fields: [title]
+      keyword: visible
+    - type: attribute_keyword
+      fields: [title]
+      keyword: visual
+    - type: attribute_keyword
+      fields: [discipline, facet1, facet2, wavelength_range]
+      keyword: visible
+    - type: hardcoded_instruments
+      names:
+        - "Imaging Science Subsystem - Narrow Angle (ISSNA) for CO"
+        - "Imaging Science Subsystem - Wide Angle (ISSWA) for CO"
+    - type: hardcoded_instruments
+      names:
+        - "Juno JunoCam (JUNOCAM)"
+    - type: attribute_keyword
+      fields: [description]
+      keyword: lowell observatory
+
+  UV:
+    - type: attribute_keyword
+      fields: [title]
+      keyword: ultraviolet
+    - type: attribute_keyword
+      fields: [discipline, facet1, facet2, wavelength_range]
+      keyword: ultraviolet
+    - type: attribute_keyword
+      fields: [description]
+      keyword: tangent point of the maven-sun line
+
+  X-Rays:
+    - type: attribute_keyword
+      fields: [title]
+      keyword: x-ray
+    - type: attribute_keyword
+      fields: [title]
+      keyword: xray
+    - type: attribute_keyword
+      fields: [discipline, facet1, facet2, wavelength_range]
+      keyword: x-ray
+
+  Gamma Rays:
+    - type: attribute_keyword
+      fields: [title]
+      keyword: gamma
+    - type: attribute_keyword
+      fields: [discipline, facet1, facet2, wavelength_range]
+      keyword: gamma
+
+  # ── Particles & Fields ────────────────────────────────────────────────────────
+
+  Altimetry:
+    - type: attribute_keyword
+      fields: [discipline, facet1, facet2]
+      keyword: altimetr
+    - type: attribute_keyword
+      fields: [description]
+      keyword: altimetr
+
+  Gravitational Fields:
+    - type: attribute_keyword
+      fields: [title]
+      keyword: gravity science instrument
+    - type: attribute_keyword
+      fields: [discipline, facet1, facet2]
+      keyword: gravity
+    - type: attribute_keyword
+      fields: [description]
+      keyword: gravity
+
+  Magnetic Fields:
+    - type: attribute_keyword
+      fields: [discipline, facet1, facet2]
+      keyword: magnetic
+
+  Electric Fields:
+    - type: attribute_keyword
+      fields: [discipline, facet1, facet2]
+      keyword: electric
+
+  Plasma Waves:
+    - type: attribute_keyword
+      fields: [title]
+      keyword: wave
+      exclude_keyword: [microwave]
+    - type: attribute_keyword
+      fields: [discipline, facet1, facet2]
+      keyword: plasma wave
+
+  Plasma:
+    - type: attribute_keyword
+      fields: [discipline, facet1, facet2]
+      keyword: plasma
+      exclude_keyword: [plasma wave]
+    - type: attribute_keyword
+      fields: [title]
+      keyword: plasma
+      exclude_keyword: [plasma wave]
+
+  Electron Temperature:
+    - type: attribute_keyword
+      fields: [discipline, facet1, facet2]
+      keyword: electron
+      exclude_keyword: [energetic, cosmic ray]
+
+  Energetic Particles:
+    - type: attribute_keyword
+      fields: [title]
+      keyword: energetic particles
+    - type: attribute_keyword
+      fields: [discipline, facet1, facet2]
+      keyword: energetic
+    - type: attribute_keyword
+      fields: [discipline, facet1, facet2]
+      keyword: charged particle
+
+  Neutrons:
+    - type: attribute_keyword
+      fields: [title]
+      keyword: neutron
+    - type: attribute_keyword
+      fields: [discipline, facet1, facet2]
+      keyword: neutron
+
+  Cosmic Rays:
+    - type: attribute_keyword
+      fields: [discipline, facet1, facet2]
+      keyword: cosmic
+
+  # ── Atmosphere ─────────────────────────────────────────────────────────────────
+
+  Clouds:
+    - type: attribute_keyword
+      fields: [title]
+      keyword: nephelometer
+    - type: attribute_keyword
+      fields: [title]
+      keyword: cloud
+    - type: hardcoded_instruments
+      names:
+        - "Phoenix Lander Meteorology Suite LIDAR (LIDAR)"
+    - type: hardcoded_instruments
+      names:
+        - "acp.hp"
+    - type: hardcoded_instruments
+      names:
+        - "disr.hp"
+    - type: hardcoded_instruments
+      names:
+        - "Photopolarimeter Radiometer (PPR) for Galileo Orbiter"
+    - type: hardcoded_instruments
+      names:
+        - "Mars Reconnaissance Orbiter Compact Reconnaissance Imaging Spectrometer (CRISM) for Mars"
+        - "Mars Science Laboratory Curiosity Rover Navigation Camera (NAVCAM)"
+        - "Phoenix Lander Surface Stereo Imager (SSI)"
+    - type: attribute_keyword
+      fields: [description]
+      keyword: lowell observatory
+    - type: hardcoded_instruments
+      names:
+        - "Mars Global Surveyor Spacecraft Thermal Emission Spectrometer (TES)"
+        - "Viking Orbiter 1 Spacecraft Infrared Thermal Mapper (IRTM)"
+        - "Viking Orbiter 2 Spacecraft Infrared Thermal Mapper (IRTM)"
+        - "Imaging Science Subsystem - Narrow Angle (ISSNA) for CO"
+        - "Ultraviolet Spectrometer (UVS) for Galileo Orbiter"
+        - "Net Flux Radiometer (NFR) for Galileo Probe"
+        - "Jovian Infrared Auroral Mapper (JIRAM) for Juno"
+        - "Juno JunoCam (JUNOCAM)"
+        - "Microwave Radiometer (MWR) for Juno"
+
+  Winds:
+    - type: attribute_keyword
+      fields: [title]
+      keyword: wind
+      exclude_keyword: [solar wind]
+    - type: attribute_keyword
+      fields: [description]
+      keyword: wind
+      exclude_keyword: [solar wind]
+    - type: hardcoded_instruments
+      names:
+        - "Viking Meteorology Instrument System (MET) for Viking Lander 1"
+        - "Viking Meteorology Instrument System (MET) for Viking Lander 2"
+    - type: hardcoded_instruments
+      names:
+        - "PIONEER VENUS LARGE PROBE DIFFERENTIAL LONG BASE LINE INTERFEROMETER"
+        - "PIONEER VENUS SMALL PROBE (DAY) DIFFERENTIAL LONG BASE LINE INTERFEROMETER"
+        - "PIONEER VENUS SMALL PROBE (NIGHT) DIFFERENTIAL LONG BASE LINE INTERFEROMETER"
+        - "PIONEER VENUS SMALL PROBE (NORTH) DIFFERENTIAL LONG BASE LINE INTERFEROMETER"
+    - type: hardcoded_instruments
+      names:
+        - "dwe.hp"
+    - type: hardcoded_instruments
+      names:
+        - "Imaging Science Subsystem - Narrow Angle (ISSNA) for CO"
+
+  Isotopic Ratios:
+    - type: attribute_keyword
+      fields: [title]
+      keyword: isotop
+    - type: hardcoded_instruments
+      names:
+        - "MAVEN Imaging Ultraviolet Spectrograph (IUVS)"
+
+  Density:
+    - type: attribute_keyword
+      fields: [description, domain]
+      keyword: density
+      exclude_keyword: [solar wind, magnetosphere, electron density]
+    - type: attribute_keyword
+      fields: [description]
+      keyword: magellan atmospheric profile
+    - type: hardcoded_instruments
+      names:
+        - "MAVEN Accelerometer (ACC)"
+        - "2001 Mars Odyssey Spacecraft Accelerometer (ACCEL)"
+        - "Mars Reconnaissance Orbiter Accelerometer (ACCEL)"
+        - "Accelerometer (ACCEL) for Mars Global Surveyor"
+    - type: hardcoded_instruments
+      names:
+        - "huygens_hk.hp"
+        - "ssp.hp"
+
+  Atmospheric Composition:
+    - type: attribute_keyword
+      fields: [description]
+      keyword: atmospheric composition
+    - type: attribute_keyword
+      fields: [title]
+      keyword: abundance
+      exclude_investigation: [cassini]
+    - type: attribute_keyword
+      fields: [title]
+      keyword: mass spectrometer
+      exclude_keyword: [isotop, "(oims)"]
+      exclude_investigation: [cassini]
+    - type: hardcoded_instruments
+      names:
+        - "Orbiter Neutral Mass Spectrometer (ONMS) for Pioneer Venus"
+        - "Neutral Mass Spectrometer for Pioneer Venus Large Probe"
+        - "Mass Spectrometer (GPMS) for Galileo Probe"
+        - "Helium Abundance Detector (HAD) for Galileo Probe"
+    - type: hardcoded_instruments
+      names:
+        - "Viking Orbiter 1 Spacecraft Mars Atmospheric Water Detector (MAWD)"
+        - "Viking Orbiter 2 Spacecraft Mars Atmospheric Water Detector (MAWD)"
+    - type: hardcoded_instruments
+      names:
+        - "Mars Reconnaissance Orbiter Compact Reconnaissance Imaging Spectrometer (CRISM) for Mars"
+    - type: hardcoded_instruments
+      names:
+        - "gcms.hp"
+    - type: hardcoded_instruments
+      names:
+        - "disr.hp"
+    - type: attribute_keyword
+      fields: [description]
+      keyword: mole fraction
+    - type: attribute_keyword
+      fields: [description]
+      keyword: molecular hydrogen
+    - type: hardcoded_instruments
+      names:
+        - "MAVEN Imaging Ultraviolet Spectrograph (IUVS)"
+        - "Mars Global Surveyor Spacecraft Thermal Emission Spectrometer (TES)"
+        - "Infrared Interferometer Spectrometer (IRIS)"
+        - "Mars Oxygen In-Situ Resource Utilization Experiment (MOXIE) for Mars 2020"
+        - "Ultraviolet Spectrometer (UVS) for Galileo Orbiter"
+        - "Jovian Infrared Auroral Mapper (JIRAM) for Juno"
+        - "Juno Ultraviolet Spectrograph (UVS)"
+        - "Microwave Radiometer (MWR) for Juno"
+        - "Ultraviolet Spectrometer (UVS) for VG1"
+        - "Ultraviolet Spectrometer (UVS) for VG2"
+
+  Ionosphere:
+    - type: attribute_keyword
+      fields: [domain]
+      keyword: ionosphere
+    - type: attribute_keyword
+      fields: [description]
+      keyword: ionosphere
+    - type: attribute_keyword
+      fields: [description]
+      keyword: electron density
+    - type: hardcoded_instruments
+      names:
+        - "MAVEN Imaging Ultraviolet Spectrograph (IUVS)"
+        - "Energetic Particles Investigation (EPI) for Galileo Probe"
+        - "Jovian Infrared Auroral Mapper (JIRAM) for Juno"
+        - "Juno Ultraviolet Spectrograph (UVS)"
+        - "Ultraviolet Spectrometer (UVS) for VG1"
+        - "Ultraviolet Spectrometer (UVS) for VG2"
+
+  Exosphere:
+    - type: hardcoded_instruments
+      names:
+        - "KPNO McMath-Pierce Solar Main Telescope (1.61m) Vacuum Spectrograph"
+
+  Temperature & Pressure Profiles:
+    - type: attribute_keyword
+      fields: [description]
+      keyword: magellan atmospheric profile
+    - type: hardcoded_instruments
+      names:
+        - "Atmospheric Structure Instrument (ASI) for Galileo Probe"
+    - type: hardcoded_instruments
+      names: &pv_las_sas_names
+        - "Atmospheric Structure Experiment for Pioneer Venus Large Probe"
+        - "Atmosphere Structure Experiment for Pioneer Venus Small Probe (Day)"
+        - "Atmosphere Structure Experiment for Pioneer Venus Small Probe (Night)"
+        - "Atmosphere Structure Experiment for Pioneer Venus Small Probe (North)"
+    - type: hardcoded_instruments
+      names:
+        - "Pioneer Venus Orbiter Radio Science Experiment (ORSE)"
+    - type: hardcoded_instruments
+      names:
+        - "InSight Mars Lander Auxiliary Payload Sensor Subsystem Pressure Sensor (APSS-PS)"
+        - "InSight Mars Lander Auxiliary Payload Sensor Subsystem Temperatures and Wind Sensor (APSS-TWINS)"
+        - "Meteorology Suite, Pressure & Temperature (MET) for Phoenix Mars Lander"
+        - "Viking Meteorology Instrument System (MET) for Viking Lander 1"
+        - "Viking Meteorology Instrument System (MET) for Viking Lander 2"
+        - "Mars Global Surveyor Spacecraft Radio Science Subsystem (RSS)"
+        - "Mars Environmental Dynamics Analyzer (MEDA) for Mars 2020"
+    - type: hardcoded_instruments
+      names:
+        - "Mars Science Laboratory Curiosity Rover Accelerometer (ACCEL) for Entry, Descent and Landing"
+        - "InSight Mars Lander Entry, Descent, and Landing Instrument (EDL)"
+    - type: attribute_keyword
+      fields: [description]
+      keyword: pioneer venus special events data
+    - type: hardcoded_instruments
+      names:
+        - "hasi.hp"
+    - type: attribute_keyword
+      fields: [description]
+      keyword: temperature profiles
+    - type: attribute_keyword
+      fields: [description]
+      keyword: atmospheric profile
+    - type: hardcoded_instruments
+      names:
+        - "Infrared Interferometer Spectrometer (IRIS)"
+        - "Viking Orbiter 1 Spacecraft Infrared Thermal Mapper (IRTM)"
+        - "Viking Orbiter 2 Spacecraft Infrared Thermal Mapper (IRTM)"
+        - "The Cassini Radar (RADAR)"
+
+  # ── Additional Categories ───────────────────────────────────────────────────
+
+  Dust:
+    - type: attribute_keyword
+      fields: [title]
+      keyword: dust
+    - type: attribute_keyword
+      fields: [discipline, facet1, facet2]
+      keyword: dust
+    - type: hardcoded_instruments
+      names:
+        - "Mars Reconnaissance Orbiter Compact Reconnaissance Imaging Spectrometer (CRISM) for Mars"
+        - "Mars Science Laboratory Curiosity Rover Navigation Camera (NAVCAM)"
+        - "Phoenix Lander Surface Stereo Imager (SSI)"
+        - "InSight Mars Lander Seismic Experiment (SEIS) for Interior Structure"
+        - "Imager (IMP) for Mars Pathfinder for MPFL"
+
+# ── Omitted instruments ────────────────────────────────────────────────────────
+# Instrument display names (case-insensitive) excluded from all pipeline
+# output — infrastructure entries in shared PDS collections, not real science
+# instruments.
+
+omitted_instruments:
+  - "NASA Deep Space Network Radio Science (RSS)"
+  - "ngims_maven"
+
+# ── Collection date overrides ───────────────────────────────────────────────────
+# Exact collection LIDs with a corrected Time_Coordinates value; list only the
+# field(s) that are actually wrong (an entry with just "start" leaves stop
+# untouched).
+
+collection_date_overrides:
+  - collection_lid: "urn:nasa:pds:vg2-lecp-urn:data-scan-24sec-asc::1.0"
+    start: "1986-01-24T00:00:00Z"
+  - collection_lid: "urn:nasa:pds:vg2-lecp-urn:data-scan-24sec-bin::1.0"
+    start: "1986-01-24T00:00:00Z"
+  - collection_lid: "urn:nasa:pds:mars2020_supercam:calibration_supercam::4.0"
+    start: null
+    stop: null
+
+# ── Technique tags ─────────────────────────────────────────────────────────────
+# Sub-type tags stored alongside a category match, same rule format as
+# category_rules above. Do not create table rows; used for future filtering
+# and display.
+
+techniques:
+
+  Imaging:
+    - type: attribute_keyword
+      fields: [title]
+      keyword: imager
+    - type: attribute_keyword
+      fields: [title]
+      keyword: imaging
+    - type: attribute_keyword
+      fields: [title]
+      keyword: camera
+    - type: hardcoded_instruments
+      names:
+        - "Juno JunoCam (JUNOCAM)"
+
+  Spectroscopy:
+    - type: attribute_keyword
+      fields: [title]
+      keyword: spectrograph
+    - type: attribute_keyword
+      fields: [title]
+      keyword: spectroscopy
+    - type: attribute_keyword
+      fields: [title]
+      keyword: spectrometer
+
+# ── Mission type metadata ──────────────────────────────────────────────────────
+# Single source of truth for the §3.4 mission_type vocabulary.
+#
+# Adding a new mission type:
+#   1. Add an entry here (type, priority, label, color; text_color only if not #fff).
+#   2. Add its investigation-name mappings in mission_types below.
+#   3. Add a landing-page entry in mission_landing_pages if applicable.
+#   No code changes needed — rule_engine.py and render_html.py read this.
+#
+# priority: lower = more specific spacecraft role (wins in multi-mission tie-breaks).
+# color:    chip background color in the pretty HTML table.
+# text_color: chip text color; defaults to #fff when absent.
+
+mission_type_display:
+  - type: probe
+    priority: 1
+    label: Probe
+    color: "#c07830"
+  - type: lander
+    priority: 2
+    label: Lander
+    color: "#8b5e3c"
+  - type: rover
+    priority: 3
+    label: Rover
+    color: "#7055b0"
+  - type: orbiter
+    priority: 4
+    label: Orbiter
+    color: "#2e7d3a"
+  - type: flyby
+    priority: 5
+    label: Flyby
+    color: "#3d7ebf"
+  - type: ground_based
+    priority: 6
+    label: Ground-based
+    color: "#607080"
+  - type: unknown
+    priority: 7
+    label: Unknown
+    color: "#9aa5b0"
+    text_color: "#222"
+
+# ── Mission type lookup ────────────────────────────────────────────────────────
+# Maps PDS investigation name strings (pds:Investigation_Area.pds:name) to a
+# type from the mission_type_display vocabulary above.
+#
+# Names are matched case-insensitively.  List every variant that appears in the
+# live PDS data (confirmed from the current Jupiter and Venus output files).
+
+mission_types:
+
+  - names: ["Pioneer 10"]
+    type: flyby
+
+  - names: ["Pioneer 11"]
+    type: flyby
+
+  - names: ["RAV1CIUN", "Voyager", "VOYAGER", "Voyager 1", "Voyager 2", "Voyager Mission"]
+    type: flyby
+
+  - names: ["GALILEO ORBITER"]
+    type: orbiter
+
+  - names: ["GALILEO PROBE"]
+    type: probe
+
+  - names: ["Galileo", "NIMS Io Spectroscopy"]
+    planet: Jupiter
+    type: orbiter
+
+  - names: ["Galileo"]
+    type: flyby
+
+  - names: ["Cassini"]
+    planet: Saturn
+    type: orbiter
+
+  - names: ["Cassini-Huygens", "Cassini-Huygens Mission"]
+    planet: Saturn
+    type: orbiter
+
+  - names: ["Cassini-Huygens", "Cassini-Huygens Mission"]
+    type: flyby
+
+  - names: ["Huygens Probe"]
+    type: lander
+
+  - names: ["HAYABUSA"]
+    type: flyby
+
+  - names: ["Juno"]
+    planet: Jupiter
+    type: orbiter
+
+  - names: ["Juno"]
+    type: flyby
+
+  - names: ["Radio JOVE"]
+    type: ground_based
+
+  - names: ["Ulysses"]
+    type: flyby
+
+  - names: ["New Horizons", "New Horizons Kuiper Belt Extended Mission 1",
+            "New Horizons Kuiper Belt Extended Mission 2"]
+    type: flyby
+
+  - names: ["PIONEER VENUS", "Pioneer Venus", "Pioneer Venus (PV)"]
+    type: orbiter
+
+  - names: ["MAGELLAN", "Magellan"]
+    type: orbiter
+
+  - names:
+      - "MESSENGER"
+      - "MErcury Surface, Space ENvironment, GEochemistry, and Ranging"
+      - "MErcury Surface, Space ENvironment, GEochemistry, and Ranging Mission"
+    planet: Mercury
+    type: orbiter
+
+  - names:
+      - "MESSENGER"
+      - "MErcury Surface, Space ENvironment, GEochemistry, and Ranging"
+      - "MErcury Surface, Space ENvironment, GEochemistry, and Ranging Mission"
+    type: flyby
+
+  - names: ["Venera 15 and 16"]
+    type: orbiter
+
+  - names: ["Venus Express", "Venus_Express"]
+    type: orbiter
+
+  - names: ["B. Campbell Venus Earth-Based Radar Observations"]
+    type: ground_based
+
+  - names: ["MARINER69"]
+    type: flyby
+
+  - names: ["Mariner 9"]
+    type: orbiter
+
+  - names: ["VIKING ORBITER", "Viking", "Viking Orbiters 1 and 2"]
+    type: orbiter
+
+  - names: ["Viking Lander", "VIKING LANDER"]
+    type: lander
+
+  - names: ["Mars Global Surveyor", "MARS GLOBAL SURVEYOR", "Mars Global Surveyor (MGS)", "MGS"]
+    type: orbiter
+
+  - names: ["MARS Odyssey", "MARS_ODYSSEY", "Mars Odyssey", "ODYSSEY", "ODY"]
+    type: orbiter
+
+  - names: ["Mars Reconnaissance Orbiter", "MARS RECONNAISSANCE ORBITER", "MRO"]
+    type: orbiter
+
+  - names: ["MARS EXPRESS"]
+    type: orbiter
+
+  - names:
+      - "MAVEN"
+      - "Mars Atmosphere and Volatile EvolutioN"
+      - "Mars Atmosphere and Volatile EvolutioN Mission"
+    type: orbiter
+
+  - names: ["ExoMars 2016", "ExoMars16"]
+    type: orbiter
+
+  - names: ["Mars Pathfinder", "Pathfinder"]
+    type: lander
+
+  - names: ["Mars Phoenix", "Phoenix", "PHOENIX"]
+    type: lander
+
+  - names: ["InSight", "Insight"]
+    type: lander
+
+  - names: ["Mars Exploration Rover", "Mars Exploration Rovers: Spirit and Opportunity"]
+    type: rover
+
+  - names: ["Mars Science Laboratory", "MARS SCIENCE LABORATORY", "MSAM", "MSAM2"]
+    type: rover
+
+  - names:
+      - "MARS 2020"
+      - "Mars 2020"
+      - "Mars 2020 Perseverance Rover Mission"
+      - "Mars 2020: Perseverance Rover"
+    type: rover
+
+  - names: ["DAWN Mission to Vesta and Ceres", "Dawn"]
+    type: flyby
+
+  - names: ["No Specific Investigation"]
+    type: ground_based
+
+  - names: ["Earth-based Observations of Uranus System Stellar Occultations"]
+    type: ground_based
+
+  - names: ["Uranus and Neptune Photometry"]
+    type: ground_based
+
+  - names: ["McMath-Pierce Solar Telescope Spectra of Mercury"]
+    type: ground_based
+
+# ── Mission landing pages ──────────────────────────────────────────────────────
+# Maps PDS investigation name strings to a public mission landing page URL.
+# Names matched case-insensitively, same as mission_types.
+#
+# URL hierarchy used per mission (best available wins):
+#   1. NASA Science (science.nasa.gov/mission/) — modern, visual, NASA missions
+#   2. Agency site  (ESA, JAXA)                 — for non-NASA missions
+#   3. NASA citizen-science page                — Radio JOVE
+#   4. ATM data archive                         — ground-based observations with
+#                                                 no dedicated mission page
+#
+# All URLs verified June 2026.
+
+mission_landing_pages:
+
+  - names: ["Pioneer 10"]
+    url: "https://science.nasa.gov/mission/pioneer-10/"
+
+  - names: ["Pioneer 11"]
+    url: "https://science.nasa.gov/mission/pioneer-11/"
+
+  - names: ["RAV1CIUN", "Voyager", "VOYAGER", "Voyager 1", "Voyager 2", "Voyager Mission"]
+    canonical_name: "Voyager"
+    url: "https://science.nasa.gov/mission/voyager/"
+
+  - names: ["GALILEO ORBITER", "GALILEO PROBE", "Galileo"]
+    canonical_name: "Galileo"
+    url: "https://science.nasa.gov/mission/galileo/"
+
+  - names: ["Cassini", "Cassini-Huygens", "Cassini-Huygens Mission"]
+    canonical_name: "Cassini-Huygens"
+    url: "https://science.nasa.gov/mission/cassini/"
+
+  - names: ["Huygens Probe"]
+    canonical_name: "Huygens Probe"
+    url: "https://www.esa.int/Science_Exploration/Space_Science/Huygens_overview"
+
+  - names: ["HAYABUSA"]
+    url: "https://www.isas.jaxa.jp/en/missions/spacecraft/past/hayabusa.html"
+
+  - names: ["Juno"]
+    url: "https://science.nasa.gov/mission/juno/"
+
+  - names: ["Radio JOVE"]
+    url: "https://radiojove.gsfc.nasa.gov/"
+
+  - names: ["Ulysses"]
+    url: "https://science.nasa.gov/mission/ulysses/"
+
+  - names: ["New Horizons", "New Horizons Kuiper Belt Extended Mission 1",
+            "New Horizons Kuiper Belt Extended Mission 2"]
+    canonical_name: "New Horizons"
+    url: "https://science.nasa.gov/mission/new-horizons/"
+
+  - names: ["PIONEER VENUS", "Pioneer Venus", "Pioneer Venus (PV)"]
+    canonical_name: "Pioneer Venus"
+    url: "https://science.nasa.gov/mission/pioneer-venus-1/"
+
+  - names: ["MAGELLAN", "Magellan"]
+    canonical_name: "Magellan"
+    url: "https://science.nasa.gov/mission/magellan/"
+
+  - names:
+      - "MESSENGER"
+      - "MErcury Surface, Space ENvironment, GEochemistry, and Ranging"
+      - "MErcury Surface, Space ENvironment, GEochemistry, and Ranging Mission"
+    canonical_name: "MESSENGER"
+    url: "https://science.nasa.gov/mission/messenger/"
+
+  - names: ["Venera 15 and 16"]
+    url: "https://www.esa.int/Science_Exploration/Space_Science/Envision/Past_missions_to_Venus"
+
+  - names: ["Venus Express", "Venus_Express"]
+    url: "https://www.esa.int/Science_Exploration/Space_Science/Venus_Express"
+
+  - names: ["B. Campbell Venus Earth-Based Radar Observations"]
+    url: "https://pds-atmospheres.nmsu.edu/data_and_services/atmospheres_data/atmospheres_data.htm"
+
+  - names: ["MARINER69"]
+    canonical_name: "Mariner 6 & 7"
+    url: "https://science.nasa.gov/mission/mariner-6-7/"
+
+  - names: ["Mariner 9"]
+    url: "https://science.nasa.gov/mission/mariner-9/"
+
+  - names: ["VIKING ORBITER", "Viking", "Viking Lander", "VIKING LANDER", "Viking Orbiters 1 and 2"]
+    canonical_name: "Viking"
+    url: "https://science.nasa.gov/mission/viking/"
+
+  - names: ["Mars Global Surveyor", "MARS GLOBAL SURVEYOR", "Mars Global Surveyor (MGS)", "MGS"]
+    url: "https://science.nasa.gov/mission/mars-global-surveyor/"
+
+  - names: ["MARS Odyssey", "MARS_ODYSSEY", "Mars Odyssey", "ODYSSEY", "ODY"]
+    canonical_name: "Mars Odyssey"
+    url: "https://science.nasa.gov/mission/2001-mars-odyssey/"
+
+  - names: ["Mars Reconnaissance Orbiter", "MARS RECONNAISSANCE ORBITER", "MRO"]
+    url: "https://science.nasa.gov/mission/mars-reconnaissance-orbiter/"
+
+  - names: ["MARS EXPRESS"]
+    canonical_name: "Mars Express"
+    url: "https://www.esa.int/Science_Exploration/Space_Science/Mars_Express"
+
+  - names:
+      - "MAVEN"
+      - "Mars Atmosphere and Volatile EvolutioN"
+      - "Mars Atmosphere and Volatile EvolutioN Mission"
+    canonical_name: "MAVEN"
+    url: "https://science.nasa.gov/mission/maven/"
+
+  - names: ["ExoMars 2016", "ExoMars16"]
+    url: "https://www.esa.int/Science_Exploration/Space_Science/ExoMars/ExoMars_2016"
+
+  - names: ["Mars Pathfinder", "Pathfinder"]
+    url: "https://science.nasa.gov/mission/mars-pathfinder/"
+
+  - names: ["Mars Phoenix", "Phoenix", "PHOENIX"]
+    url: "https://science.nasa.gov/mission/phoenix/"
+
+  - names: ["InSight", "Insight"]
+    url: "https://science.nasa.gov/mission/insight/"
+
+  - names: ["Mars Exploration Rover", "Mars Exploration Rovers: Spirit and Opportunity"]
+    url: "https://science.nasa.gov/mission/mars-exploration-rover-mission/"
+
+  - names: ["Mars Science Laboratory", "MARS SCIENCE LABORATORY", "MSAM", "MSAM2"]
+    url: "https://science.nasa.gov/mission/msl-curiosity/"
+
+  - names:
+      - "MARS 2020"
+      - "Mars 2020"
+      - "Mars 2020 Perseverance Rover Mission"
+      - "Mars 2020: Perseverance Rover"
+    canonical_name: "Mars 2020"
+    url: "https://science.nasa.gov/mission/mars-2020-perseverance/"
+
+  - names: ["DAWN Mission to Vesta and Ceres", "Dawn"]
+    canonical_name: "Dawn"
+    url: "https://science.nasa.gov/mission/dawn/"
+
+# ── Instrument-name type overrides ────────────────────────────────────────────
+# Applied by exact instrument name, after all mission_types lookups — for a
+# missing/too-coarse investigation-name match. Optional fields: type/url
+# override the mission_type_display chip and landing-page link; investigation
+# replaces the instrument's mission entirely (a PDS4 collection only ever
+# carries one investigation, so a joint/derived product can misattribute an
+# instrument to the wrong spacecraft); display_name overrides a LID-derived
+# instrument name.
+instrument_type_overrides:
+  - names: ["mauna_kea.2m24.tinsley_phot"]
+    type: ground_based
+    display_name: "Mauna Kea 2.24m Tinsley Photometer"
+  - names: ["mcdonald.smith2m7.p45a_phot"]
+    type: ground_based
+    display_name: "McDonald 2.7m P45A Photometer"
+
+  - names: *pv_las_sas_names
+    type: probe
+    url: "https://science.nasa.gov/mission/pioneer-venus-2/"
+  - names:
+      - "Gas Chromatograph for Pioneer Venus Large Probe"
+      - "Infrared Radiometer for Pioneer Venus Large Probe"
+      - "Nephelometer for Pioneer Venus Large Probe"
+      - "Nephelometer for Pioneer Venus Small Probe (Day)"
+      - "Nephelometer for Pioneer Venus Small Probe (Night)"
+      - "Nephelometer for Pioneer Venus Small Probe (North)"
+      - "Net Flux Radiometer for Pioneer Venus Small Probe (Day)"
+      - "Net Flux Radiometer for Pioneer Venus Small Probe (Night)"
+      - "Net Flux Radiometer for Pioneer Venus Small Probe (North)"
+      - "Neutral Mass Spectrometer for Pioneer Venus Large Probe"
+      - "Solar Flux Radiometer for Pioneer Venus Large Probe"
+      - "PIONEER VENUS LARGE PROBE DIFFERENTIAL LONG BASE LINE INTERFEROMETER"
+      - "PIONEER VENUS SMALL PROBE (DAY) DIFFERENTIAL LONG BASE LINE INTERFEROMETER"
+      - "PIONEER VENUS SMALL PROBE (NIGHT) DIFFERENTIAL LONG BASE LINE INTERFEROMETER"
+      - "PIONEER VENUS SMALL PROBE (NORTH) DIFFERENTIAL LONG BASE LINE INTERFEROMETER"
+    type: probe
+    url: "https://science.nasa.gov/mission/pioneer-venus-2/"
+
+  - names: ["Radio Science Subsystem (RSS) for Mariner 9"]
+    investigation: "Mariner 9"
+  - names:
+      - "Viking Orbiter 1 Spacecraft Radio Science Subsystem (RSS)"
+      - "Viking Orbiter 2 Spacecraft Radio Science Subsystem (RSS)"
+    investigation: "Viking Orbiters 1 and 2"
+
+# ── Display name overrides ─────────────────────────────────────────────────────
+# For instruments where the PDS registry stores a LID-derived or redundant
+# self-referential name instead of a human-readable title — replaces the PDS
+# name (name) with display_name everywhere it appears.
+display_name_overrides:
+  - name: "acp.hp"
+    display_name: "Huygens Aerosol Collector and Pyrolyser (ACP)"
+  - name: "disr.hp"
+    display_name: "Huygens Descent Imager/Spectral Radiometer (DISR)"
+  - name: "dwe.hp"
+    display_name: "Huygens Doppler Wind Experiment (DWE)"
+  - name: "gcms.hp"
+    display_name: "Huygens Gas Chromatograph and Mass Spectrometer (GCMS)"
+  - name: "hasi.hp"
+    display_name: "Huygens Atmosphere Structure Instrument (HASI)"
+  - name: "huygens_hk.hp"
+    display_name: "Huygens Housekeeping (HK)"
+  - name: "ssp.hp"
+    display_name: "Huygens Surface Science Package (SSP)"
+  - name: "instrument.ra__phx"
+    display_name: "Phoenix Robotic Arm (RA)"
+  - name: "vex.mag"
+    display_name: "Venus Express Magnetometer (MAG)"
+  - name: "receiver.k4led"
+    display_name: "Radio JOVE Station K4LED Receiver"
+  - name: "CASSIS (CASSIS)"
+    display_name: "TGO Colour and Stereo Surface Imaging System (CASSIS)"
+  - name: "FREND (FREND)"
+    display_name: "TGO Fine Resolution Epithermal Neutron Detector (FREND)"
