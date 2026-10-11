@@ -927,6 +927,10 @@ instrument_type_overrides:
       - "Viking Orbiter 1 Spacecraft Radio Science Subsystem (RSS)"
       - "Viking Orbiter 2 Spacecraft Radio Science Subsystem (RSS)"
     investigation: "Viking Orbiters 1 and 2"
+  # The co_iss_global-maps bundle label names its investigation "Name" (a
+  # template placeholder); the same instrument's collections name "Cassini".
+  - names: ["Imaging Science Subsystem - Narrow Angle (ISSNA) for CO"]
+    investigation: "Cassini"
 
 # ── Display name overrides ─────────────────────────────────────────────────────
 # For instruments where the PDS registry stores a LID-derived or redundant

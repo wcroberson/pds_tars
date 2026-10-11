@@ -1,8 +1,14 @@
 """
 build.py - Main pipeline entry point for the PDS ATM integrated archive tables.
 
-Queries the PDS registry, assigns categories to instruments, and writes
-the category × observation-year tables to pds_tars/tables/.
+Queries the PDS registry for a target's bundles, reads each bundle's science
+sorting pairs (one instrument LID + one category label per pair) to place its
+instruments in categories, and writes the category × observation-year tables
+to pds_tars/tables/.
+
+Years come from each bundle's own Time_Coordinates by default. With
+--years collection, they come instead from the instrument's science
+collections inside each bundle, still sorted by that bundle's pairs.
 
 Every target gets its own subdirectory (tables/<target>/, lowercased) holding
 both node variants together. Filenames are prefixed with <target> plus a node
@@ -22,7 +28,7 @@ the PDS registry recognizes as a context target. There's no planet+moons
 "system" grouping; a moon with its own ATM-node data (e.g. Io, Titan) is
 built and shipped as its own separate target like any planet.
 
-Run with:  .venv/bin/python pds_tars/build.py [TARGET ...] [--diagnostic] [--node NODE] [--refresh-contexts]
+Run with:  .venv/bin/python pds_tars/build.py [TARGET ...] [--diagnostic] [--node NODE] [--years {bundle,collection}] [--refresh-contexts]
 """
 
 import argparse
@@ -34,15 +40,20 @@ from collections import defaultdict, namedtuple
 
 import pds.peppi as pep
 
-from pds_tars.schema import SECTION_ORDER, OMITTED_INSTRUMENTS, INSTRUMENT_TYPE_OVERRIDES, DISPLAY_NAME_OVERRIDES_BY_NAME
-from pds_tars.rule_engine import categories_for_section, matched_categories, make_attrs, abbr_mission_type, landing_page_for_mission, technique_categories
+from pds_tars.schema import (
+    SECTION_ORDER, SECTION_OF_CATEGORY, OMITTED_INSTRUMENTS, INSTRUMENT_TYPE_OVERRIDES,
+    DISPLAY_NAME_OVERRIDES_BY_NAME,
+)
+from pds_tars.rule_engine import make_attrs, abbr_mission_type, landing_page_for_mission, technique_categories
 from pds_tars.registry import (
     build_context, build_instrument_name_cache, build_investigation_cache,
-    instrument_components, collection_fields, clamp_to_investigation_dates,
+    instrument_components, collection_fields, bundle_fields, clamp_to_investigation_dates,
     is_science_collection, is_ancillary_purpose, abbreviate, to_initials, scalar,
-    investigation_identity,
+    investigation_identity, latest_versions, sorting_labels, parent_bundle_lids,
+    instrument_names_by_lid,
     TITLE_KEY, NODE_KEY, CURRENT_YEAR,
 )
+from pds_tars.interim_sorting_labels import add_interim_sorting_labels
 from pds_tars.render_html import write_diagnostic_html_table, write_pretty_html_table, write_basic_html_table
 
 # Package lives at <project_root>/src/pds_tars/ - tables/
@@ -55,8 +66,14 @@ OUTPUT_DIR = os.path.join(_PROJECT_ROOT, "tables")
 # ── Pipeline configuration ─────────────────────────────────────────────────────
 
 # When True, drop collections whose purpose is entirely ancillary
-# (Engineering, Observation Geometry, Calibration, Navigation).
+# (Engineering, Observation Geometry, Calibration, Navigation). Applies only
+# with --years collection, the one mode that reads collections.
 SCIENCE_ONLY = True
+
+# Where the table's years come from: each bundle's own Time_Coordinates, or
+# the Time_Coordinates of the instrument's collections inside each bundle.
+YEARS_FROM_BUNDLE = "bundle"
+YEARS_FROM_COLLECTION = "collection"
 
 
 # ── Abbreviation helper ────────────────────────────────────────────────────────
@@ -198,10 +215,10 @@ def _get_abbr(name, name_to_abbr, abbr_used, display_name_map=None):
 # ── Table data builder ─────────────────────────────────────────────────────────
 
 def _instrument_attrs(name, fields, wavelength_range=None):
-    """Builds a make_attrs() dict from one collection's raw field dict.
+    """Builds a make_attrs() dict from one bundle's or collection's raw field dict.
 
-    Every call site building a category/technique-matching attrs dict for an
-    instrument's collection needs the same set of fields. Routing them all
+    Used for technique matching. Every call site building a technique-matching
+    attrs dict needs the same set of fields. Routing them all
     through one builder means a new field only needs to be added here -
     separate call sites can silently drift out of sync (one gets a new field
     like domain/investigation, another doesn't, and it keeps matching
@@ -209,8 +226,8 @@ def _instrument_attrs(name, fields, wavelength_range=None):
 
     Args:
         name (string): instrument display name (becomes attrs["title"]).
-        fields (dict): one collection's field dict (a value from a
-              by_instrument[name] dict).
+        fields (dict): one bundle's or collection's field dict (a value from
+              a by_instrument[name] dict).
         wavelength_range (list of strings or None): override for
               fields["wavelength_range"], e.g. an agreed-upon
               multi-instrument fallback value; falls back to
@@ -303,17 +320,16 @@ def build_table_data(by_instrument, planet=None, investigation_cache=None):
     Works entirely from the already-fetched by_instrument dict, so no second
     registry query is needed.
 
-    Multi-instrument collections - shared among several instruments - carry
-    collection-level field values (wavelength_range, discipline, etc.) that are
-    not instrument-specific.  To avoid misassigning categories: when an instrument
-    has at least one single-instrument collection, only those single-instrument
-    collections are used for year and category assignment; multi-instrument ones
-    are ignored.  When an instrument has only multi-instrument collections, all of
-    them are used as-is.
+    Each entry's categories are its "science_sorting_labels" - the labels its
+    bundle's sorting pairs give that instrument - and its year is the entry's
+    own start year. An entry is a bundle, or with --years collection, one of
+    the instrument's collections inside a bundle. A label that isn't a
+    category in pipeline_rules.yaml is skipped with a printed warning.
 
     Args:
         by_instrument (dict): instrument display name -> a dict of
-              {collection_title: fields_dict} as built in main(). Each
+              {entry_title: fields_dict} as built in _process_target(), where
+              each fields_dict carries a "science_sorting_labels" list. Each
               instrument LID maps to exactly one display name via
               build_instrument_name_cache(), so a given LID appears under at
               most one key. Two LIDs that resolve to the same display name
@@ -331,7 +347,7 @@ def build_table_data(by_instrument, planet=None, investigation_cache=None):
     Raises:
         ValueError: if, after instrument_type_overrides' optional
               "investigation" overrides are applied, some instrument's
-              collections still name more than one real mission (e.g. a
+              entries (bundles or collections) still name more than one real mission (e.g. a
               collection that's a joint product built from several
               spacecrafts' data, but - like every current PDS4 collection -
               records only one investigation on itself). Add an
@@ -365,7 +381,7 @@ def build_table_data(by_instrument, planet=None, investigation_cache=None):
               pipeline_rules.yaml.
           category_spans (dict): category label -> abbreviation ->
               {"start": int year, "end": int year or None, "ongoing":
-              bool}, built from every dated collection contributing to that
+              bool}, built from every dated entry (bundle or collection) contributing to that
               category (start year in section_tables comes from the
               earliest; "end" is the latest real stop year seen; "ongoing"
               is set instead of "end" when any contributing collection's
@@ -373,7 +389,7 @@ def build_table_data(by_instrument, planet=None, investigation_cache=None):
               can't have a future stop date, so PDS's "still active, no end
               date yet" placeholder years (year 3000 for some instruments,
               other far-future years like 2030 for others - not a single
-              fixed sentinel) are all caught the same way. Collections with
+              fixed sentinel) are all caught the same way. Entries with
               no start date ("No Date" in section_tables) don't contribute
               here; entries where end == start (or is None) aren't included
               since there's nothing to draw a line to. Used by the pretty
@@ -388,9 +404,10 @@ def build_table_data(by_instrument, planet=None, investigation_cache=None):
               ground-based abbreviations only, for gb_section_tables' own
               timeline.
           category_collection_counts (dict): category label -> abbreviation
-              -> count of collections contributing to that category for
-              that abbreviation (dated or not) - e.g. an instrument with 10
-              UV collections and 1 Atmospheric Composition collection shows
+              -> count of entries (bundles, or collections with --years
+              collection) contributing to that category for that
+              abbreviation (dated or not) - e.g. an instrument with 10
+              UV entries and 1 Atmospheric Composition entry shows
               "10" on its UV pill and "1" on its Atmospheric Composition
               pill, not its instrument-wide total. Used for the pretty
               table's chip count badge; the basic/diagnostic tables ignore
@@ -423,52 +440,30 @@ def build_table_data(by_instrument, planet=None, investigation_cache=None):
     }
     display_name_map.update(DISPLAY_NAME_OVERRIDES_BY_NAME)
 
-    for inst_name, collections in by_instrument.items():
-        has_single = any(fields.get("_single_instrument") for fields in collections.values())
+    # dict: unknown label -> set of instrument names carrying it. A label not in
+    # pipeline_rules.yaml's sections has no row to go in, so it's reported
+    # rather than silently dropped.
+    unknown_labels = defaultdict(set)
+
+    for inst_name, entries in by_instrument.items():
         abbr = _get_abbr(inst_name, name_to_abbr, abbr_used, display_name_map)
 
-        # If single-inst collections hit no category, borrow wavelength_range from
-        # multi-inst collections when they agree (guards multi-mode instruments like
-        # RADAR) - keeps already-sorted discipline/facet instruments unaffected.
-        agreed_wavelength = None
-        if has_single:
-            single_cols = [fields for fields in collections.values() if fields.get("_single_instrument")]
-            multi_cols  = [fields for fields in collections.values() if not fields.get("_single_instrument")]
-            single_has_categories = any(
-                matched_categories(_instrument_attrs(inst_name, fields))
-                for fields in single_cols
-            )
-            if not single_has_categories and multi_cols:
-                multi_wl_sets = [
-                    frozenset(fields["wavelength_range"])
-                    for fields in multi_cols
-                    if fields.get("wavelength_range")
-                ]
-                if multi_wl_sets and len(set(multi_wl_sets)) == 1:
-                    agreed_wavelength = list(multi_wl_sets[0])
-
-        for fields in collections.values():
-            if has_single and not fields.get("_single_instrument"):
-                continue
-
+        for fields in entries.values():
             year = "No Date" if fields["start"] is None else fields["start"][:4]
 
             for inv in (fields.get("investigation") or []):
                 abbr_to_missions[abbr].add(inv)
 
-            # _instrument_attrs (via make_attrs from rule_engine) builds the
-            # standardized attrs dict that the rule evaluator expects, supplying
-            # [] defaults for any omitted lists.
-            collection_attrs = _instrument_attrs(
-                inst_name, fields, wavelength_range=fields.get("wavelength_range") or agreed_wavelength
-            )
             cats_hit = set()
-            for section_name, table in section_tables.items():
-                for cat in categories_for_section(section_name, collection_attrs):
-                    table[cat][year].add(abbr)
-                    cats_hit.add(cat)
+            for label in fields.get("science_sorting_labels") or []:
+                section_name = SECTION_OF_CATEGORY.get(label)
+                if section_name is None:
+                    unknown_labels[label].add(inst_name)
+                    continue
+                section_tables[section_name][label][year].add(abbr)
+                cats_hit.add(label)
 
-            # Counted per category this collection actually hit, not once per instrument
+            # Counted per category this entry actually hit, not once per instrument
             # - a 10-UV/1-Atmospheric-Composition instrument shows "10" and "1" on their
             # own pills, not a combined total. Counted even for "No Date" rows.
             for cat in cats_hit:
@@ -488,6 +483,10 @@ def build_table_data(by_instrument, planet=None, investigation_cache=None):
                         span["ongoing"] = True
                     elif stop_year is not None:
                         span["end"] = stop_year if span["end"] is None else max(span["end"], stop_year)
+
+    for label, inst_names in sorted(unknown_labels.items()):
+        print(f"  WARNING: science sorting label {label!r} is not a category in "
+              f"pipeline_rules.yaml - skipped for {', '.join(sorted(inst_names))}")
 
     # Drop spans with nothing to draw a line to: a single dated collection
     # (or several agreeing on one year) with no real end year past its own
@@ -645,11 +644,49 @@ def _apply_registry_timeout(client, timeout_secs=_REGISTRY_REQUEST_TIMEOUT_SECS)
     client.api_client.rest_client.request = _request
 
 
+# ── Bundle and collection entries ──────────────────────────────────────────────
+
+def _add_instrument_entries(by_instrument, title, fields, inst_lids, labels,
+                            inst_name_cache, spacecraft_ids, facility_ids):
+    """Adds one bundle's or collection's entry under each instrument it names.
+
+    Each instrument's copy of fields gets "science_sorting_labels": the labels
+    the sorting pairs give that instrument (empty if the pairs don't name
+    it). An instrument named only in the pairs, not in the product's own
+    instrument references, still gets an entry - the pairs are what sort it.
+    A product naming no instrument at all goes under "(no instrument)".
+    Mutates by_instrument in place.
+
+    Args:
+        by_instrument (dict): instrument display name -> {entry title: fields}.
+        title (string): the bundle's or collection's title, used as the entry key.
+        fields (dict): from bundle_fields() or collection_fields().
+        inst_lids (list of strings): the product's own instrument LIDs.
+        labels (dict): normalized instrument LID -> labels, as returned by
+              sorting_labels() (merged across parent bundles for a collection).
+        inst_name_cache (dict): from build_instrument_name_cache().
+        spacecraft_ids (set): from build_instrument_name_cache().
+        facility_ids (set): from build_instrument_name_cache().
+    """
+    names = instrument_names_by_lid(list(inst_lids) + list(labels),
+                                    inst_name_cache, spacecraft_ids, facility_ids)
+    if not names:
+        entry = dict(fields)
+        entry["science_sorting_labels"] = []
+        by_instrument["(no instrument)"][title] = entry
+        return
+    for inst_lid, inst_name in names.items():
+        entry = dict(fields)
+        entry["science_sorting_labels"] = list(labels.get(inst_lid, []))
+        by_instrument[inst_name][title] = entry
+
+
 # ── Process target ─────────────────────────────────────────────────────────────
 
 def _process_target(target_name, context, client, node_filter, node_suffix,
                     inst_name_cache, spacecraft_ids, facility_ids, investigation_cache,
-                    omitted_lower, peppi_name_overrides, diagnostic):
+                    omitted_lower, peppi_name_overrides, diagnostic,
+                    years_from=YEARS_FROM_BUNDLE):
     """Queries, categorizes, and writes output for one target.
 
     Raises on any failure (unknown target, registry error, etc.) rather than
@@ -676,6 +713,9 @@ def _process_target(target_name, context, client, node_filter, node_suffix,
               bodies Peppi doesn't expose under their plain name (see
               peppi_name_overrides in main()).
         diagnostic (bool): whether to also write the diagnostic outputs.
+        years_from (string): YEARS_FROM_BUNDLE to date each entry by its
+              bundle's Time_Coordinates, or YEARS_FROM_COLLECTION to date it by
+              each of the instrument's science collections inside the bundle.
     """
     peppi_name = peppi_name_overrides.get(target_name, target_name)
     if not hasattr(context.TARGETS, peppi_name):
@@ -707,49 +747,76 @@ def _process_target(target_name, context, client, node_filter, node_suffix,
     print(f"{target_label} LID : {body_target.lid}")
     print(f"Node filter : {node_filter or 'ALL'}\n")
 
-    target_collections = pep.Products(client).has_target(body_target.lid).collections()
+    target_bundles = latest_versions(pep.Products(client).has_target(body_target.lid).bundles())
+    interim_count = add_interim_sorting_labels(target_bundles)
+    print(f"Bundles : {len(target_bundles)}  ({interim_count} given interim sorting labels)")
 
     by_instrument = defaultdict(dict)
 
-    # has_target(...).collections() returns every node's data regardless of --node;
+    # has_target(...).bundles() returns every node's bundles regardless of --node;
     # node_filter below only decides what reaches by_instrument. Tracked
     # unconditionally so abbr_to_nodes never depends on a stale separate run.
     all_nodes_by_instrument = defaultdict(set)
 
-    for col in target_collections:
-        if not is_science_collection(col):
-            continue
-        if SCIENCE_ONLY and is_ancillary_purpose(col):
-            continue
+    # dict: bundle LID -> {normalized instrument LID: labels}, for every bundle
+    # that passes node_filter - read again below when dating by collection.
+    labels_by_bundle = {}
 
-        pds_node    = scalar(col.properties.get(NODE_KEY))
-        instruments = instrument_components(col.properties, inst_name_cache, spacecraft_ids, facility_ids)
+    for bundle in target_bundles:
+        pds_node = scalar(bundle.properties.get(NODE_KEY))
         if pds_node:
-            for inst_name in instruments:
+            for inst_name in instrument_components(bundle.properties, inst_name_cache, spacecraft_ids, facility_ids):
                 all_nodes_by_instrument[inst_name].add(pds_node)
 
         if node_filter and pds_node != node_filter:
             continue
 
-        title  = scalar(col.properties.get(TITLE_KEY)) or col.id
-        fields = collection_fields(col, target_label)
+        fields = bundle_fields(bundle, target_label)
         clamp_to_investigation_dates(fields, investigation_cache)
+        labels = sorting_labels(bundle.properties, spacecraft_ids, facility_ids)
+        labels_by_bundle[fields["bundle_lid"]] = labels
 
-        if not instruments:
-            by_instrument["(no instrument)"][title] = fields
-        else:
-            single = (len(instruments) == 1)
-            for inst_name in instruments:
-                inst_fields = dict(fields)
-                inst_fields["_single_instrument"] = single
-                by_instrument[inst_name][title] = inst_fields
+        if years_from == YEARS_FROM_BUNDLE:
+            title = scalar(bundle.properties.get(TITLE_KEY)) or bundle.id
+            _add_instrument_entries(by_instrument, title, fields, fields["instrument_lid"] or [], labels,
+                                    inst_name_cache, spacecraft_ids, facility_ids)
+
+    # Dating by collection: each of the instrument's science collections is its
+    # own entry, sorted by the pairs on the bundle (or bundles) it belongs to.
+    if years_from == YEARS_FROM_COLLECTION:
+        for col in pep.Products(client).has_target(body_target.lid).collections():
+            if not is_science_collection(col):
+                continue
+            if SCIENCE_ONLY and is_ancillary_purpose(col):
+                continue
+            if node_filter and scalar(col.properties.get(NODE_KEY)) != node_filter:
+                continue
+
+            fields = collection_fields(col, target_label)
+            clamp_to_investigation_dates(fields, investigation_cache)
+
+            # dict: normalized instrument LID -> labels, merged across every
+            # parent bundle this target's bundle query returned
+            labels = defaultdict(list)
+            for bundle_lid in parent_bundle_lids(fields):
+                for inst_lid, inst_labels in labels_by_bundle.get(bundle_lid, {}).items():
+                    for label in inst_labels:
+                        if label not in labels[inst_lid]:
+                            labels[inst_lid].append(label)
+
+            title = scalar(col.properties.get(TITLE_KEY)) or col.id
+            inst_lids = fields["instrument_lid"] or []
+            _add_instrument_entries(by_instrument, title, fields, inst_lids,
+                                    {lid: labels[lid] for lid in labels},
+                                    inst_name_cache, spacecraft_ids, facility_ids)
 
     for inst_name in [name for name in by_instrument if name.lower() in omitted_lower]:
         del by_instrument[inst_name]
 
-    total_cols = sum(len(collections) for collections in by_instrument.values())
+    total_entries = sum(len(entries) for entries in by_instrument.values())
     print(f"Instruments : {len(by_instrument)}")
-    print(f"Collections : {total_cols}  (multi-instrument collections counted once per instrument)\n")
+    print(f"Entries : {total_entries} {years_from}s  (a {years_from} naming several "
+          f"instruments counts once per instrument)\n")
     if not by_instrument:
         print(f"  WARNING: zero instruments found for {target_label} with node filter "
               f"'{node_filter or 'ALL'}'. This is expected for a body with no ATM-node "
@@ -801,7 +868,7 @@ def _process_target(target_name, context, client, node_filter, node_suffix,
             abbr_to_technique_counts[abbr] = tech_counts
 
     # Archive status for chip decorations: flags instruments with any non-archived
-    # collection so staff can spot in-progress work at a glance - flat
+    # bundle (or collection) so staff can spot in-progress work at a glance - flat
     # per-abbreviation, unlike the category-scoped count badge.
     abbr_nonarchived = set()
     for inst_name, cols in by_instrument.items():
@@ -827,6 +894,7 @@ def _process_target(target_name, context, client, node_filter, node_suffix,
         gb_section_tables=gb_section_tables,
         gb_category_spans=gb_category_spans,
         gb_category_collection_counts=gb_category_collection_counts,
+        count_unit=years_from,
     )
     basic_path = os.path.join(target_dir,
                                f"{file_prefix}_integrated_archive_basic.html")
@@ -855,7 +923,7 @@ def _process_target(target_name, context, client, node_filter, node_suffix,
                 "collections": [
                     {
                         "title":          title,
-                        "lid":            fields.get("collection_lid", ""),
+                        "lid":            fields.get("collection_lid") or fields.get("bundle_lid") or "",
                         "pds_node":       fields.get("pds_node") or "",
                         "mission":        ", ".join(fields.get("investigation") or []),
                         "start":          fields.get("start") or "",
@@ -881,7 +949,8 @@ def _process_target(target_name, context, client, node_filter, node_suffix,
 
 # ── Pipeline orchestration ──────────────────────────────────────────────────────
 
-def run_pipeline(targets, diagnostic=False, node="ATM", refresh_contexts=False):
+def run_pipeline(targets, diagnostic=False, node="ATM", refresh_contexts=False,
+                 years_from=YEARS_FROM_BUNDLE):
     """Runs the full pipeline for one or more targets.
 
     Holds every step main() used to run inline, taking plain arguments
@@ -893,8 +962,10 @@ def run_pipeline(targets, diagnostic=False, node="ATM", refresh_contexts=False):
     its own process.
 
     For each target:
-      1. Queries the PDS registry for science collections.
-      2. Groups collections by instrument and resolves category metadata.
+      1. Queries the PDS registry for the target's bundles (and, with
+         years_from=YEARS_FROM_COLLECTION, its science collections too).
+      2. Groups them by instrument and reads each bundle's science sorting
+         pairs for the categories.
       3. Builds category × year tables and writes the pretty/basic HTML output
          (plus the diagnostic HTML table, with diagnostic=True).
 
@@ -911,6 +982,8 @@ def run_pipeline(targets, diagnostic=False, node="ATM", refresh_contexts=False):
               catalog (instruments, spacecraft, etc.) instead of using the
               on-disk cache in pds_tars/cache/context_cache.json.
               This re-downloads the full catalog and can take several minutes.
+        years_from (string): YEARS_FROM_BUNDLE (default) or
+              YEARS_FROM_COLLECTION - see _process_target().
 
     Returns (list of strings):
         target names (from targets) that failed, in the order queued;
@@ -955,7 +1028,7 @@ def run_pipeline(targets, diagnostic=False, node="ATM", refresh_contexts=False):
                 target_name, context, client, node_filter, node_suffix,
                 inst_name_cache, spacecraft_ids, facility_ids, investigation_cache,
                 omitted_lower, peppi_name_overrides,
-                diagnostic=diagnostic,
+                diagnostic=diagnostic, years_from=years_from,
             )
         except Exception as exc:
             print(f"[SKIPPED] {target_name}: {exc}", file=sys.stderr)
@@ -998,6 +1071,15 @@ def main():
              '(default: ATM). Pass ALL to include every node.',
     )
     parser.add_argument(
+        "--years",
+        choices=[YEARS_FROM_BUNDLE, YEARS_FROM_COLLECTION],
+        default=YEARS_FROM_BUNDLE,
+        help="Where the table's years come from: each bundle's own time range "
+             "(bundle, the default), or the time ranges of each instrument's "
+             "science collections inside the bundle (collection). Categories "
+             "come from the bundle's science sorting pairs either way.",
+    )
+    parser.add_argument(
         "--refresh-contexts",
         action="store_true",
         help="Force a live re-fetch of the context-product catalog (instruments, "
@@ -1010,6 +1092,7 @@ def main():
 
     failed_targets = run_pipeline(
         targets, diagnostic=args.diagnostic, node=args.node, refresh_contexts=args.refresh_contexts,
+        years_from=args.years,
     )
 
     if failed_targets:

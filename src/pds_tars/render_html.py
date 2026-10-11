@@ -1276,14 +1276,14 @@ _PRETTY_TABLE_CONTENT = """\
                data-tc='{{ cell.technique_counts | tojson }}'
                href="{{ cell.url }}" target="_blank" rel="noopener noreferrer"
                style="background:{{ cell.color }};color:{{ cell.text_col }}"
-               data-tip="{{ cell.tooltip }}">{{ cell.abbr }}{% if cell.count > 0 %}<span class="chip-count">{{ cell.count }}</span>{% endif %}{% if cell.is_nonarchived %}<span class="chip-status" title="Includes non-archived collections"></span>{% endif %}</a>
+               data-tip="{{ cell.tooltip }}">{{ cell.abbr }}{% if cell.count > 0 %}<span class="chip-count">{{ cell.count }}</span>{% endif %}{% if cell.is_nonarchived %}<span class="chip-status" title="Includes non-archived {{ count_unit }}s"></span>{% endif %}</a>
             {% else %}
             <span class="chip chip-pill{% if cell.ongoing %} chip-ongoing{% endif %}" data-mtype="{{ cell.mission_type }}"
                   data-nodes="{{ cell.nodes_str }}" data-tech="{{ cell.tech_str }}"
                   data-abbr="{{ cell.abbr }}" data-count="{{ cell.count }}"
                   data-tc='{{ cell.technique_counts | tojson }}'
                   style="background:{{ cell.color }};color:{{ cell.text_col }}"
-                  data-tip="{{ cell.tooltip }}">{{ cell.abbr }}{% if cell.count > 0 %}<span class="chip-count">{{ cell.count }}</span>{% endif %}{% if cell.is_nonarchived %}<span class="chip-status" title="Includes non-archived collections"></span>{% endif %}</span>
+                  data-tip="{{ cell.tooltip }}">{{ cell.abbr }}{% if cell.count > 0 %}<span class="chip-count">{{ cell.count }}</span>{% endif %}{% if cell.is_nonarchived %}<span class="chip-status" title="Includes non-archived {{ count_unit }}s"></span>{% endif %}</span>
             {% endif %}
           </td>
           {% else %}
@@ -1482,10 +1482,11 @@ def _abbr_display_info(abbr, abbr_to_mission_type, abbr_to_fullname,
                         abbr_to_missions, abbr_to_landing_page,
                         abbr_to_nodes, abbr_to_techniques,
                         abbr_to_collection_count, abbr_nonarchived,
-                        abbr_to_technique_counts=None):
+                        abbr_to_technique_counts=None, count_unit="collection"):
     """Per-abbreviation label/tooltip/color/URL info for the pretty table's
     pill renderer (_category_lanes()), so an abbreviation's look and link are
-    built in one place.
+    built in one place. count_unit names what the count badge counts
+    ("collection" or "bundle"), for the tooltip's "N collections" text.
     """
     mission_type = abbr_to_mission_type.get(abbr, "unknown")
     fullname     = abbr_to_fullname.get(abbr, abbr)
@@ -1493,7 +1494,7 @@ def _abbr_display_info(abbr, abbr_to_mission_type, abbr_to_fullname,
                     if mission.lower() not in _INVALID_MISSION_DISPLAY_NAMES)
     missions     = _display_missions(missions_raw)
     count        = abbr_to_collection_count.get(abbr, 0)
-    count_label  = f"{count} collection{'s' if count != 1 else ''}"
+    count_label  = f"{count} {count_unit}{'s' if count != 1 else ''}"
     type_label   = _TYPE_LABEL_MAP.get(mission_type, "Unknown")
     mission_line = f"{missions} ({type_label})" if missions else type_label
     techs_raw    = sorted(abbr_to_techniques.get(abbr, set()))
@@ -1520,7 +1521,8 @@ def _category_lanes(category, year_map, spans_for_category, all_years,
                      abbr_to_mission_type, abbr_to_fullname,
                      abbr_to_missions, abbr_to_landing_page, abbr_to_nodes,
                      abbr_to_techniques, counts_for_category,
-                     abbr_nonarchived, abbr_to_technique_counts=None):
+                     abbr_nonarchived, abbr_to_technique_counts=None,
+                     count_unit="collection"):
     """Builds one category row's instruments as elongated pill bars, packed
     into the minimum number of non-overlapping vertical "lanes".
 
@@ -1627,6 +1629,7 @@ def _category_lanes(category, year_map, spans_for_category, all_years,
                 abbr, abbr_to_mission_type, abbr_to_fullname, abbr_to_missions,
                 abbr_to_landing_page, abbr_to_nodes, abbr_to_techniques,
                 counts_for_category, abbr_nonarchived, abbr_to_technique_counts,
+                count_unit=count_unit,
             )
             info["kind"]    = "pill"
             info["colspan"] = end_col - start_col + 1
@@ -1656,7 +1659,8 @@ def write_pretty_html_table(section_tables, name_to_abbr, abbr_to_missions,
                              category_spans=None,
                              gb_section_tables=None,
                              gb_category_spans=None,
-                             gb_category_collection_counts=None):
+                             gb_category_collection_counts=None,
+                             count_unit="collection"):
     """Writes a read-only, display-quality HTML table to an .html file.
 
     Instruments appear as colored chips (no checkboxes).  Chip color encodes
@@ -1694,6 +1698,9 @@ def write_pretty_html_table(section_tables, name_to_abbr, abbr_to_missions,
               gb_section_tables' own timeline.
         gb_category_collection_counts (dict or None): same shape as
               category_collection_counts, for gb_section_tables' own chips.
+        count_unit (string): what the chip counts and the non-archived marker
+              refer to - "collection", or "bundle" when the table is built
+              from bundles.
     """
     category_spans = category_spans or {}
     gb_section_tables = gb_section_tables or {}
@@ -1770,7 +1777,7 @@ def write_pretty_html_table(section_tables, name_to_abbr, abbr_to_missions,
                     abbr_to_mission_type, abbr_to_fullname, abbr_to_missions,
                     abbr_to_landing_page, abbr_to_nodes, abbr_to_techniques,
                     counts_by_category.get(row, {}), abbr_nonarchived,
-                    abbr_to_technique_counts,
+                    abbr_to_technique_counts, count_unit=count_unit,
                 )
                 if not lanes:
                     continue
@@ -2143,6 +2150,7 @@ def write_pretty_html_table(section_tables, name_to_abbr, abbr_to_missions,
         has_ground_based=has_ground_based,
         distinct_nodes=distinct_nodes,
         distinct_techniques=distinct_techniques,
+        count_unit=count_unit,
     )
     with open(path, "w") as f:
         f.write(html)

@@ -10,7 +10,9 @@ from pds_tars.registry import (
     _normalize_instrument_lid, instrument_components, collection_fields,
     is_science_collection, is_ancillary_purpose, _resolve_investigation_keys,
     investigation_identity, investigation_date_bounds, clamp_to_investigation_dates,
+    sorting_labels, latest_versions, parent_bundle_lids, bare_lid,
     INST_LID_KEY, PURPOSE_KEY, PROC_KEY, BUNDLE_KEY, START_KEY, STOP_KEY,
+    SORTING_INST_LID_KEY, SORTING_LABEL_KEY,
 )
 
 # Spacecraft host abbreviations sampled from the live registry via Pass 1 of
@@ -388,3 +390,77 @@ def test_clamp_real_ongoing_mission_untouched():
     assert fields["start"] == "2016-07-10T08:16:47Z"
     assert fields["stop"] == "3000-01-01T00:00:00.000Z"
 
+
+# ── Bundle sorting pairs ──────────────────────────────────────────────────────
+# LIDs from the pvmp_dlbi bundle (four Pioneer Venus probe DLBI instruments).
+
+LP_DLBI  = "urn:nasa:pds:context:instrument:pvmp.lp.dlbi"
+DAY_DLBI = "urn:nasa:pds:context:instrument:pvmp.sp-day.dlbi"
+
+
+def test_sorting_labels_pairs_lists_by_position():
+    """Item N of the LID list goes with item N of the label list, and an
+    instrument repeated across pairs collects all of its labels."""
+    props = {
+        SORTING_INST_LID_KEY: [LP_DLBI, LP_DLBI, DAY_DLBI],
+        SORTING_LABEL_KEY:    ["Radio", "Winds", "Winds"],
+    }
+    assert sorting_labels(props, SPACECRAFT_IDS, FACILITY_IDS) == {
+        LP_DLBI: ["Radio", "Winds"],
+        DAY_DLBI: ["Winds"],
+    }
+
+
+def test_sorting_labels_drops_repeated_pairs():
+    """The same instrument/label pair written twice counts once."""
+    props = {SORTING_INST_LID_KEY: [LP_DLBI, LP_DLBI], SORTING_LABEL_KEY: ["Radio", "Radio"]}
+    assert sorting_labels(props, SPACECRAFT_IDS, FACILITY_IDS) == {LP_DLBI: ["Radio"]}
+
+
+def test_sorting_labels_rejects_lists_of_different_lengths():
+    """Unequal lists can't be paired safely - every label after the gap would
+    attach to the wrong instrument - so they must raise instead."""
+    props = {SORTING_INST_LID_KEY: [LP_DLBI, DAY_DLBI], SORTING_LABEL_KEY: ["Radio"]}
+    with pytest.raises(ValueError, match="pair up one to one"):
+        sorting_labels(props, SPACECRAFT_IDS, FACILITY_IDS)
+
+
+def test_sorting_labels_normalizes_old_style_lids():
+    """An old-style host.instrument LID in a pair is keyed the same way as the
+    modern instrument.host form, so it matches the bundle's own references."""
+    props = {SORTING_INST_LID_KEY: ["urn:nasa:pds:context:instrument:go.nims"],
+             SORTING_LABEL_KEY:    ["IR"]}
+    assert sorting_labels(props, SPACECRAFT_IDS, FACILITY_IDS) == {
+        "urn:nasa:pds:context:instrument:nims.go": ["IR"],
+    }
+
+
+def test_sorting_labels_empty_when_bundle_has_no_pairs():
+    assert sorting_labels({}, SPACECRAFT_IDS, FACILITY_IDS) == {}
+
+
+class _FakeProduct:
+    def __init__(self, lidvid):
+        self.id = lidvid
+        self.properties = {}
+
+
+def test_latest_versions_keeps_newest_version_per_lid():
+    """1.10 is newer than 1.9 - versions compare as numbers, not text."""
+    products = [_FakeProduct("urn:nasa:pds:pv_sed::1.9"),
+                _FakeProduct("urn:nasa:pds:pv_sed::1.10"),
+                _FakeProduct("urn:nasa:pds:pvmp_dlbi::1.0")]
+    kept = sorted(product.id for product in latest_versions(products))
+    assert kept == ["urn:nasa:pds:pv_sed::1.10", "urn:nasa:pds:pvmp_dlbi::1.0"]
+
+
+def test_parent_bundle_lids_prefers_registry_field_then_falls_back_to_lid():
+    listed = {"parent_bundle_lid": ["urn:nasa:pds:pvmp_dlbi::1.0"],
+              "collection_lid": "urn:nasa:pds:other:data"}
+    assert parent_bundle_lids(listed) == {"urn:nasa:pds:pvmp_dlbi"}
+    derived = {"parent_bundle_lid": None, "collection_lid": "urn:nasa:pds:pvmp_dlbi:data"}
+    assert parent_bundle_lids(derived) == {"urn:nasa:pds:pvmp_dlbi"}
+
+
+def test_bare_lid_strips_version():
+    assert bare_lid("urn:nasa:pds:pvmp_dlbi::1.0") == "urn:nasa:pds:pvmp_dlbi"

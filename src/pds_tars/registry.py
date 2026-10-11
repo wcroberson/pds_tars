@@ -2,8 +2,9 @@
 registry.py - PDS registry querying helpers.
 
 Handles all interaction with the PDS Search API via peppi: building the
-instrument name cache, parsing collection properties, and filtering
-collections to science-only data products.
+instrument name cache, parsing bundle and collection properties, reading the
+science sorting pairs on bundle labels, and filtering collections to
+science-only data products.
 """
 
 import datetime
@@ -53,6 +54,14 @@ TITLE_KEY         = "pds:Identification_Area.pds:title"
 INST_LID_KEY      = "ref_lid_instrument"
 DESCRIPTION_KEY   = "pds:Citation_Information.pds:description"
 COLLECTION_TYPE_KEY = "pds:Collection.pds:collection_type"
+
+# Science sorting pairs from the ATM sorting dictionary, carried on bundle
+# labels. Each Instrument_Sorting element holds exactly one instrument LID and
+# exactly one label, so the registry's two flattened lists line up by position
+# (item N of one goes with item N of the other). "atmsort" is a placeholder
+# namespace until the dictionary is registered.
+SORTING_INST_LID_KEY = "atmsort:Instrument_Sorting.atmsort:instrument_lid"
+SORTING_LABEL_KEY    = "atmsort:Instrument_Sorting.atmsort:science_sorting_label"
 
 # Property keys for instrument context products (not collections).
 INST_NAME_KEY = "pds:Instrument.pds:name"
@@ -605,6 +614,30 @@ def instrument_components(props, inst_name_cache, spacecraft_ids, facility_ids):
     ]
 
 
+def instrument_names_by_lid(inst_lids, inst_name_cache, spacecraft_ids, facility_ids):
+    """Returns the display name for each instrument LID, keyed by normalized LID.
+
+    Same lookup as instrument_components(), but keyed by the normalized LID so
+    a bundle's sorting pairs (from sorting_labels(), keyed the same way) can be
+    matched to the instrument they name.
+
+    Args:
+        inst_lids (iterable of strings): instrument LIDs in either order.
+        inst_name_cache (dict): from build_instrument_name_cache().
+        spacecraft_ids (set): from build_instrument_name_cache().
+        facility_ids (set): from build_instrument_name_cache().
+
+    Returns (dict):
+        normalized instrument LID -> display name. Falls back to the last
+        colon-segment of the LID when not in the cache.
+    """
+    names = {}
+    for lid in inst_lids:
+        normalized = _normalize_instrument_lid(lid, spacecraft_ids, facility_ids)
+        names[normalized] = inst_name_cache.get(normalized) or lid.split(":")[-1]
+    return names
+
+
 # ── Collection parsing ────────────────────────────────────────────────────────
 
 def collection_fields(col, target_label):
@@ -649,6 +682,145 @@ def collection_fields(col, target_label):
         "parent_bundle_lid": listify(props.get(BUNDLE_KEY)),
         "archive_status":    scalar(props.get(STATUS_KEY)),
     }
+
+
+def bare_lid(lid):
+    """Returns lid with any "::version" suffix removed.
+
+    Args:
+        lid (string): a LID or LIDVID.
+
+    Returns (string):
+        lid up to the first "::".
+    """
+    return lid.split("::")[0]
+
+
+def _version_key(lidvid):
+    """Returns a LIDVID's version as a sortable tuple of ints, e.g. (1, 10).
+
+    Args:
+        lidvid (string): e.g. "urn:nasa:pds:pvmp_dlbi::1.0".
+
+    Returns (tuple of ints):
+        the version's dot-separated parts; empty if lidvid has no version.
+    """
+    _, _, version = lidvid.partition("::")
+    return tuple(int(part) for part in version.split(".") if part.isdigit())
+
+
+def latest_versions(products):
+    """Returns only the newest registered version of each product.
+
+    The registry returns every registered version of a bundle (e.g. 1.0 and
+    1.1) as separate products. Only the newest one describes the bundle as it
+    stands, so the older ones are dropped.
+
+    Args:
+        products (iterable of peppi Products): e.g. the result of
+              pep.Products(client).has_target(lid).bundles().
+
+    Returns (list of peppi Products):
+        one product per LID, the one with the highest version.
+    """
+    # dict: LID -> newest peppi Product seen so far for it
+    newest = {}
+    for product in products:
+        lid = bare_lid(product.id)
+        current = newest.get(lid)
+        if current is None or _version_key(product.id) > _version_key(current.id):
+            newest[lid] = product
+    return list(newest.values())
+
+
+def sorting_labels(props, spacecraft_ids, facility_ids):
+    """Returns a bundle's science sorting labels, grouped by instrument.
+
+    Pairs item N of the instrument-LID list with item N of the label list.
+    The sorting dictionary requires exactly one of each in every pair, so the
+    two lists always have the same length; a mismatch means the registry
+    record is broken, and pairing it anyway would attach labels to the wrong
+    instruments.
+
+    Args:
+        props (dict): peppi Product.properties for a bundle.
+        spacecraft_ids (set): from build_instrument_name_cache(), used to
+              normalize instrument LIDs.
+        facility_ids (set): from build_instrument_name_cache(), used the same
+              way as spacecraft_ids.
+
+    Raises:
+        ValueError: if the two lists have different lengths.
+
+    Returns (dict):
+        normalized instrument LID -> list of labels, in label order with
+        repeats removed; empty if the bundle carries no sorting pairs.
+    """
+    inst_lids = listify(props.get(SORTING_INST_LID_KEY)) or []
+    labels = listify(props.get(SORTING_LABEL_KEY)) or []
+    if len(inst_lids) != len(labels):
+        raise ValueError(
+            f"{len(inst_lids)} sorting instrument LIDs but {len(labels)} sorting "
+            f"labels - the two lists must pair up one to one"
+        )
+    # dict: normalized instrument LID -> labels, in the order first seen
+    by_instrument = {}
+    for inst_lid, label in zip(inst_lids, labels):
+        key = _normalize_instrument_lid(inst_lid, spacecraft_ids, facility_ids)
+        inst_labels = by_instrument.setdefault(key, [])
+        if label not in inst_labels:
+            inst_labels.append(label)
+    return by_instrument
+
+
+def bundle_fields(bundle, target_label):
+    """Builds the per-bundle metadata dict from a peppi Product object.
+
+    Same keys as collection_fields() where a bundle has the same property, so
+    the date checks and table builder treat a bundle and a collection alike.
+
+    Args:
+        bundle (peppi Product): represents a PDS4 bundle.
+        target_label (string): human-readable target name (e.g. "Venus")
+              stored verbatim in the "target" field.
+
+    Returns (dict):
+        string keys mapping to scalar or list values extracted from
+        bundle.properties.  Values are None when the property is absent.
+    """
+    props = bundle.properties
+    return {
+        "bundle_lid":     bare_lid(bundle.id),
+        "target":         target_label,
+        "investigation":  listify(props.get(INVESTIGATION_KEY)),
+        "pds_node":       scalar(props.get(NODE_KEY)),
+        "start":          scalar(props.get(START_KEY)),
+        "stop":           scalar(props.get(STOP_KEY)),
+        "description":    _flatten_whitespace(scalar(props.get(DESCRIPTION_KEY))),
+        "instrument_lid": listify(props.get(INST_LID_KEY)),
+        "archive_status": scalar(props.get(STATUS_KEY)),
+    }
+
+
+def parent_bundle_lids(fields):
+    """Returns the LIDs of the bundles one collection belongs to.
+
+    Prefers the registry's ops:Provenance.ops:parent_bundle_identifier, which
+    holds LIDVIDs, and falls back to the bundle part of the collection's own
+    LID (urn:<authority>:pds:<bundle>:<collection>) when a label has none.
+
+    Args:
+        fields (dict): one collection's fields as returned by
+              collection_fields().
+
+    Returns (set of strings):
+        bundle LIDs without versions; empty if none can be determined.
+    """
+    listed = {bare_lid(lid) for lid in (fields.get("parent_bundle_lid") or [])}
+    if listed:
+        return listed
+    parts = bare_lid(fields.get("collection_lid") or "").split(":")
+    return {":".join(parts[:4])} if len(parts) >= 5 else set()
 
 
 def is_science_collection(col):

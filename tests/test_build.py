@@ -4,14 +4,15 @@ All tests are self-contained — no network calls, no file I/O.
 """
 
 import sys
+from collections import defaultdict
 
 import pytest
 from pds_tars import build
 from pds_tars.build import build_table_data
 
 def _col(*, single, proc, wl, disc=None, inv=None, start="2000-01-01T00:00:00Z",
-         facet1=None, facet2=None):
-    """Build a minimal collection fields dict for testing."""
+         facet1=None, facet2=None, labels=None):
+    """Build a minimal bundle/collection fields dict for testing."""
     return {
         "_single_instrument": single,
         "processing_level":   proc,   # None or list[str]
@@ -21,6 +22,7 @@ def _col(*, single, proc, wl, disc=None, inv=None, start="2000-01-01T00:00:00Z",
         "start":              start,
         "facet1":             facet1,
         "facet2":             facet2,
+        "science_sorting_labels": labels or [],
     }
 
 # ── build_table_data(): abbreviation collision resolution ─────────────────────
@@ -69,16 +71,18 @@ def test_instruments_without_start_date_skipped():
 
 # ── build_table_data(): section_tables structure and category assignment ───────
 
-def test_nephelometer_lands_in_atmosphere_clouds():
-    """End-to-end: a nephelometer instrument must appear in section_tables['Atmosphere']['Clouds'].
+def test_clouds_label_lands_in_atmosphere_clouds():
+    """End-to-end: a "Clouds" science sorting label must put the instrument in
+    section_tables['Atmosphere']['Clouds'] at the entry's start year.
 
     This is the integration check for the full chain:
-      title-keyword rule → categories_for_section() → section_tables entry.
+      label -> SECTION_OF_CATEGORY -> section_tables entry.
     """
     by_instrument = {
         "Nephelometer (NEP)": {
             "NEP Raw": _col(single=True, proc=["Raw"], wl=None,
-                            inv=["GALILEO PROBE"], start="1995-01-01T00:00:00Z"),
+                            inv=["GALILEO PROBE"], start="1995-01-01T00:00:00Z",
+                            labels=["Clouds"]),
         }
     }
     table_data = build_table_data(by_instrument)
@@ -92,11 +96,12 @@ def test_nephelometer_lands_in_atmosphere_clouds():
     )
 
 def test_em_instrument_does_not_appear_in_atmosphere():
-    """An EM-only instrument (ultraviolet wavelength) must not land in any Atmosphere row."""
+    """An instrument labeled only "UV" must not land in any Atmosphere row."""
     by_instrument = {
         "Ultraviolet Spectrometer (UVS)": {
             "UVS Raw": _col(single=True, proc=["Raw"], wl=["Ultraviolet"],
-                            inv=["Voyager 1"], start="1979-01-01T00:00:00Z"),
+                            inv=["Voyager 1"], start="1979-01-01T00:00:00Z",
+                            labels=["UV"]),
         }
     }
     section_tables = build_table_data(by_instrument).section_tables
@@ -105,18 +110,16 @@ def test_em_instrument_does_not_appear_in_atmosphere():
     )
 
 def test_category_collection_counts_scoped_per_category_not_instrument_total():
-    """An instrument with 2 UV collections and 1 IR collection must show a
-    count of 2 on its UV pill and 1 on its IR pill - not its 3-collection
-    instrument-wide total on both. Instrument name deliberately contains
-    neither "ultraviolet" nor "infrared" so a title-keyword rule can't be the
-    one doing the sorting - each collection's own wavelength_range must be.
+    """An instrument with 2 UV-labeled entries and 1 IR-labeled entry must show a
+    count of 2 on its UV pill and 1 on its IR pill - not its 3-entry
+    instrument-wide total on both.
     """
     by_instrument = {
         "Test Multi (TM)": {
-            "TM UV 1": _col(single=True, proc=["Raw"], wl=["Ultraviolet"]),
-            "TM UV 2": _col(single=True, proc=["Raw"], wl=["Ultraviolet"],
-                            start="2001-01-01T00:00:00Z"),
-            "TM IR":   _col(single=True, proc=["Raw"], wl=["Infrared"]),
+            "TM UV 1": _col(single=True, proc=["Raw"], wl=None, labels=["UV"]),
+            "TM UV 2": _col(single=True, proc=["Raw"], wl=None,
+                            start="2001-01-01T00:00:00Z", labels=["UV"]),
+            "TM IR":   _col(single=True, proc=["Raw"], wl=None, labels=["IR"]),
         }
     }
     table_data = build_table_data(by_instrument)
@@ -124,6 +127,50 @@ def test_category_collection_counts_scoped_per_category_not_instrument_total():
     abbr = name_to_abbr["Test Multi (TM)"]
     assert category_collection_counts["UV"][abbr] == 2
     assert category_collection_counts["IR"][abbr] == 1
+
+def test_unknown_label_is_skipped_with_warning(capsys):
+    """A label that isn't a category in pipeline_rules.yaml has no row to go
+    in - it must be skipped and reported, not crash the build or invent a row."""
+    by_instrument = {
+        "Test Probe (TP)": {
+            "TP": _col(single=True, proc=["Raw"], wl=None, labels=["Winds", "Not A Category"]),
+        }
+    }
+    section_tables = build_table_data(by_instrument).section_tables
+    assert "Winds" in section_tables["Atmosphere"]
+    assert all("Not A Category" not in table for table in section_tables.values())
+    assert "Not A Category" in capsys.readouterr().out
+
+def test_entry_with_no_labels_gives_no_rows():
+    """A bundle whose sorting pairs don't name an instrument sorts nothing for it."""
+    by_instrument = {"Test Probe (TP)": {"TP": _col(single=True, proc=["Raw"], wl=["Ultraviolet"])}}
+    table_data = build_table_data(by_instrument)
+    assert "Test Probe (TP)" in table_data.name_to_abbr
+    assert not table_data.section_tables
+
+# ── _add_instrument_entries(): pairing labels to instruments ──────────────────
+
+def test_add_instrument_entries_gives_each_instrument_only_its_own_labels():
+    """Two instruments on one bundle with different pairs must each get only
+    the labels paired with their own LID."""
+    by_instrument = defaultdict(dict)
+    labels = {
+        "urn:nasa:pds:context:instrument:a.sc": ["UV"],
+        "urn:nasa:pds:context:instrument:b.sc": ["Winds", "Radio"],
+    }
+    build._add_instrument_entries(
+        by_instrument, "Bundle", {"start": "2000-01-01T00:00:00Z"},
+        ["urn:nasa:pds:context:instrument:a.sc", "urn:nasa:pds:context:instrument:b.sc",
+         "urn:nasa:pds:context:instrument:c.sc"],
+        labels,
+        {"urn:nasa:pds:context:instrument:a.sc": "Instrument A (A)",
+         "urn:nasa:pds:context:instrument:b.sc": "Instrument B (B)",
+         "urn:nasa:pds:context:instrument:c.sc": "Instrument C (C)"},
+        set(), set(),
+    )
+    assert by_instrument["Instrument A (A)"]["Bundle"]["science_sorting_labels"] == ["UV"]
+    assert by_instrument["Instrument B (B)"]["Bundle"]["science_sorting_labels"] == ["Winds", "Radio"]
+    assert by_instrument["Instrument C (C)"]["Bundle"]["science_sorting_labels"] == []
 
 # ── _process_target() / main(): CLI safety behavior ────────────────────────────
 

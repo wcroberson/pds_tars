@@ -53,6 +53,13 @@ for _section_labels in CATEGORY_SECTIONS.values():
 
 SECTION_ORDER = list(CATEGORY_SECTIONS.keys())
 
+# dict: category label -> the section it's listed under. Science sorting
+# labels on bundles name a category only, so this finds its table section.
+SECTION_OF_CATEGORY = {}
+for _section_name, _section_labels in CATEGORY_SECTIONS.items():
+    for _label in _section_labels:
+        SECTION_OF_CATEGORY[_label] = _section_name
+
 # Rekeyed once here (each entry's own lookup key is already known when the
 # YAML list is parsed) so every caller gets an O(1) dict instead of each
 # repeating the same rekey at its own call site.
