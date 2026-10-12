@@ -464,3 +464,85 @@ def test_parent_bundle_lids_prefers_registry_field_then_falls_back_to_lid():
 
 def test_bare_lid_strips_version():
     assert bare_lid("urn:nasa:pds:pvmp_dlbi::1.0") == "urn:nasa:pds:pvmp_dlbi"
+
+
+# ── Context caches: falling back to an old copy when the refresh fails ──────
+
+import json
+import os
+
+from pds_tars import registry
+
+
+def _write_old_json(path, data):
+    """Writes data to path as JSON and backdates its mtime past every cache max age."""
+    with open(path, "w") as f:
+        json.dump(data, f)
+    old = os.path.getmtime(path) - 30 * 24 * 60 * 60
+    os.utime(path, (old, old))
+
+
+def _failing_registry_call(*args, **kwargs):
+    raise RuntimeError("(503)\nReason: Service Temporarily Unavailable")
+
+
+class _FailingProducts:
+    def __init__(self, client):
+        pass
+
+    def contexts(self):
+        _failing_registry_call()
+
+
+def test_build_context_uses_old_targets_cache_when_refresh_fails(tmp_path, monkeypatch, capsys):
+    path = tmp_path / "context_targets_cache.json"
+    _write_old_json(path, {"targets": {"VENUS": {"lid": "urn:nasa:pds:context:target:planet.venus",
+                                                 "name": "Venus", "description": "", "type": "Planet"}}})
+    monkeypatch.setattr(registry, "CONTEXT_TARGETS_CACHE_PATH", str(path))
+    monkeypatch.setattr(registry.pep, "Context", _failing_registry_call)
+
+    context = registry.build_context()
+
+    assert context.TARGETS.VENUS.lid == "urn:nasa:pds:context:target:planet.venus"
+    assert "WARNING: could not refresh context_targets_cache.json ((503))" in capsys.readouterr().out
+
+
+def test_build_context_raises_when_refresh_fails_and_no_cache(tmp_path, monkeypatch):
+    monkeypatch.setattr(registry, "CONTEXT_TARGETS_CACHE_PATH", str(tmp_path / "missing.json"))
+    monkeypatch.setattr(registry.pep, "Context", _failing_registry_call)
+
+    with pytest.raises(RuntimeError):
+        registry.build_context()
+
+
+def test_context_product_caches_use_old_copies_when_refresh_fails(tmp_path, monkeypatch, capsys):
+    inst_path = tmp_path / "context_cache.json"
+    invest_path = tmp_path / "context_investigations_cache.json"
+    _write_old_json(inst_path, {"cache": {"urn:nasa:pds:context:instrument:nims.go": "NIMS"},
+                                "spacecraft_ids": ["go"], "facility_ids": ["relab"]})
+    _write_old_json(invest_path, {"galileo": {"name": "Galileo", "type": "Mission", "description": "",
+                                              "start_date": "1989-10-18", "stop_date": "2003-09-21"}})
+    monkeypatch.setattr(registry, "CONTEXT_CACHE_PATH", str(inst_path))
+    monkeypatch.setattr(registry, "INVESTIGATION_CACHE_PATH", str(invest_path))
+    monkeypatch.setattr(registry.pep, "Products", _FailingProducts)
+
+    cache, spacecraft_ids, facility_ids = registry.build_instrument_name_cache(client=object())
+    investigations = registry.build_investigation_cache(client=object())
+
+    assert cache == {"urn:nasa:pds:context:instrument:nims.go": "NIMS"}
+    assert spacecraft_ids == {"go"} and facility_ids == {"relab"}
+    assert investigations["galileo"]["name"] == "Galileo"
+    out = capsys.readouterr().out
+    assert "WARNING: could not refresh context_cache.json" in out
+    assert "WARNING: could not refresh context_investigations_cache.json" in out
+
+
+def test_context_product_caches_raise_when_refresh_fails_and_a_cache_is_missing(tmp_path, monkeypatch):
+    inst_path = tmp_path / "context_cache.json"
+    _write_old_json(inst_path, {"cache": {}, "spacecraft_ids": [], "facility_ids": []})
+    monkeypatch.setattr(registry, "CONTEXT_CACHE_PATH", str(inst_path))
+    monkeypatch.setattr(registry, "INVESTIGATION_CACHE_PATH", str(tmp_path / "missing.json"))
+    monkeypatch.setattr(registry.pep, "Products", _FailingProducts)
+
+    with pytest.raises(RuntimeError):
+        registry.build_instrument_name_cache(client=object())

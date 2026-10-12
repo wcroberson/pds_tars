@@ -303,16 +303,20 @@ def _normalize_instrument_lid(lid, spacecraft_ids, facility_ids):
     return lid
 
 
-def _load_context_cache():
+def _load_context_cache(allow_stale=False):
     """Returns the on-disk (cache, spacecraft_ids, facility_ids) triple if present and not stale.
+
+    Args:
+        allow_stale (bool): if True, return the cache even when it's older
+              than CONTEXT_CACHE_MAX_AGE_SECS.
 
     Returns (tuple or None):
         a (cache, spacecraft_ids, facility_ids) tuple; if the cache is
-        missing or stale, returns None.
+        missing (or stale, unless allow_stale), returns None.
     """
     if not os.path.exists(CONTEXT_CACHE_PATH):
         return None
-    if time.time() - os.path.getmtime(CONTEXT_CACHE_PATH) > CONTEXT_CACHE_MAX_AGE_SECS:
+    if not allow_stale and time.time() - os.path.getmtime(CONTEXT_CACHE_PATH) > CONTEXT_CACHE_MAX_AGE_SECS:
         return None
     with open(CONTEXT_CACHE_PATH) as f:
         data = json.load(f)
@@ -338,16 +342,20 @@ def _save_context_cache(cache, spacecraft_ids, facility_ids):
         }, f, indent=2)
 
 
-def _load_context_targets_cache():
+def _load_context_targets_cache(allow_stale=False):
     """Returns the on-disk targets dict if present and not stale.
 
+    Args:
+        allow_stale (bool): if True, return the cache even when it's older
+              than CONTEXT_TARGETS_CACHE_MAX_AGE_SECS.
+
     Returns (dict or None):
-        target data keyed by attribute name; if the cache is missing or
-        stale, returns None.
+        target data keyed by attribute name; if the cache is missing (or
+        stale, unless allow_stale), returns None.
     """
     if not os.path.exists(CONTEXT_TARGETS_CACHE_PATH):
         return None
-    if time.time() - os.path.getmtime(CONTEXT_TARGETS_CACHE_PATH) > CONTEXT_TARGETS_CACHE_MAX_AGE_SECS:
+    if not allow_stale and time.time() - os.path.getmtime(CONTEXT_TARGETS_CACHE_PATH) > CONTEXT_TARGETS_CACHE_MAX_AGE_SECS:
         return None
     with open(CONTEXT_TARGETS_CACHE_PATH) as f:
         return json.load(f).get("targets")
@@ -364,16 +372,20 @@ def _save_context_targets_cache(targets):
         json.dump({"targets": targets}, f, indent=2)
 
 
-def _load_investigation_cache():
+def _load_investigation_cache(allow_stale=False):
     """Returns on-disk investigation data if present and not stale.
+
+    Args:
+        allow_stale (bool): if True, return the cache even when it's older
+              than INVESTIGATION_CACHE_MAX_AGE_SECS.
 
     Returns (dict or None):
         investigation data keyed by name (lowercase); if the cache is
-        missing or stale, returns None.
+        missing (or stale, unless allow_stale), returns None.
     """
     if not os.path.exists(INVESTIGATION_CACHE_PATH):
         return None
-    if time.time() - os.path.getmtime(INVESTIGATION_CACHE_PATH) > INVESTIGATION_CACHE_MAX_AGE_SECS:
+    if not allow_stale and time.time() - os.path.getmtime(INVESTIGATION_CACHE_PATH) > INVESTIGATION_CACHE_MAX_AGE_SECS:
         return None
     with open(INVESTIGATION_CACHE_PATH) as f:
         return json.load(f)
@@ -390,6 +402,19 @@ def _save_investigation_cache(data):
         json.dump(data, f, indent=2)
 
 
+def _warn_using_old_cache(path, exc):
+    """Prints a warning that a live refresh failed and an older on-disk cache is in use.
+
+    Args:
+        path (string): the cache file being used instead.
+        exc (Exception): the error the live refresh raised.
+    """
+    saved = datetime.datetime.fromtimestamp(os.path.getmtime(path)).strftime("%Y-%m-%d")
+    reason = (str(exc).splitlines() or [type(exc).__name__])[0]
+    print(f"WARNING: could not refresh {os.path.basename(path)} ({reason}); "
+          f"using the copy saved {saved}.")
+
+
 def _refresh_context_product_caches(client, force_refresh=False):
     """Rebuilds the instrument-name and investigation caches together if either is stale.
 
@@ -403,6 +428,10 @@ def _refresh_context_product_caches(client, force_refresh=False):
     to check it themselves. force_refresh only adds a manual override on top
     of that: it forces a live re-fetch even when both caches are still fresh.
 
+    If the live fetch fails and both caches exist on disk, the run continues
+    on those copies, however old, with a warning; the error is raised only
+    when there's no cache to fall back on.
+
     Args:
         client (peppi PDSRegistryClient): used for the live fetch.
         force_refresh (bool): if True, force a live re-fetch even if both
@@ -412,7 +441,17 @@ def _refresh_context_product_caches(client, force_refresh=False):
         if _load_context_cache() is not None and _load_investigation_cache() is not None:
             return
 
-    all_contexts = list(pep.Products(client).contexts())
+    # Any registry failure (HTTP error, timeout, dropped connection) lands
+    # here - only the fetch is inside the try, so a bug in the processing
+    # below still raises.
+    try:
+        all_contexts = list(pep.Products(client).contexts())
+    except Exception as exc:
+        if _load_context_cache(allow_stale=True) is None or _load_investigation_cache(allow_stale=True) is None:
+            raise
+        _warn_using_old_cache(CONTEXT_CACHE_PATH, exc)
+        _warn_using_old_cache(INVESTIGATION_CACHE_PATH, exc)
+        return
 
     # Instrument name cache:
     # Pass 1: collect spacecraft abbreviations from instrument_host context LIDs.
@@ -508,7 +547,7 @@ def build_investigation_cache(client=None, force_refresh=False):
     if client is None:
         client = pep.PDSRegistryClient()
     _refresh_context_product_caches(client, force_refresh=force_refresh)
-    return _load_investigation_cache()
+    return _load_investigation_cache(allow_stale=True)
 
 
 def build_context(force_refresh=False):
@@ -519,6 +558,9 @@ def build_context(force_refresh=False):
     name, description, and type for every target to
     CONTEXT_TARGETS_CACHE_PATH. Subsequent calls within
     CONTEXT_TARGETS_CACHE_MAX_AGE_SECS return instantly from the cache.
+    If the live fetch fails and a cache exists on disk, returns that copy,
+    however old, with a warning; the error is raised only when there's no
+    cache to fall back on.
 
     Args:
         force_refresh (bool): if True, force a live re-fetch even if the
@@ -533,7 +575,16 @@ def build_context(force_refresh=False):
         if targets is not None:
             return CachedContext(targets)
 
-    ctx = pep.Context()
+    # pep.Context() fetches the whole catalog in its constructor, so this
+    # catches any registry failure and nothing else.
+    try:
+        ctx = pep.Context()
+    except Exception as exc:
+        targets = _load_context_targets_cache(allow_stale=True)
+        if targets is None:
+            raise
+        _warn_using_old_cache(CONTEXT_TARGETS_CACHE_PATH, exc)
+        return CachedContext(targets)
     # dict: attribute name (str) -> {lid, name, description, type} (the shape
     # _TargetProxy expects to read back).
     targets = {}
@@ -585,7 +636,7 @@ def build_instrument_name_cache(client=None, force_refresh=False):
     if client is None:
         client = pep.PDSRegistryClient()
     _refresh_context_product_caches(client, force_refresh=force_refresh)
-    return _load_context_cache()
+    return _load_context_cache(allow_stale=True)
 
 
 def instrument_components(props, inst_name_cache, spacecraft_ids, facility_ids):

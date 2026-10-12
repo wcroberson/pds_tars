@@ -11,10 +11,6 @@ urn:nasa:pds:co_iss_global-maps,urn:nasa:pds:context:instrument:issna.co,Clouds
 urn:nasa:pds:co_iss_global-maps,urn:nasa:pds:context:instrument:issna.co,Winds
 urn:nasa:pds:cocirs_c2h4abund,urn:nasa:pds:context:instrument:cirs.co,IR
 urn:nasa:pds:cocirs_c2h4abund,urn:nasa:pds:context:instrument:cirs.co,Atmospheric Composition
-urn:nasa:pds:coiss_zonal_winds,urn:nasa:pds:context:instrument:issna.co,IR
-urn:nasa:pds:coiss_zonal_winds,urn:nasa:pds:context:instrument:issna.co,Visual
-urn:nasa:pds:coiss_zonal_winds,urn:nasa:pds:context:instrument:issna.co,Clouds
-urn:nasa:pds:coiss_zonal_winds,urn:nasa:pds:context:instrument:issna.co,Winds
 urn:nasa:pds:coiss_zonal_winds,urn:nasa:pds:context:instrument:isswa.co,IR
 urn:nasa:pds:coiss_zonal_winds,urn:nasa:pds:context:instrument:isswa.co,Visual
 urn:nasa:pds:coiss_zonal_winds,urn:nasa:pds:context:instrument:isswa.co,Winds
@@ -51,9 +47,6 @@ urn:nasa:pds:insight_edl,urn:nasa:pds:context:instrument:edl.insight,Temperature
 urn:nasa:pds:insight_ps,urn:nasa:pds:context:instrument:apss-ps.insight,Temperature & Pressure Profiles
 urn:nasa:pds:insight_twins,urn:nasa:pds:context:instrument:apss-twins.insight,Winds
 urn:nasa:pds:insight_twins,urn:nasa:pds:context:instrument:apss-twins.insight,Temperature & Pressure Profiles
-urn:nasa:pds:insight_vortex,urn:nasa:pds:context:instrument:apss-ps.insight,Temperature & Pressure Profiles
-urn:nasa:pds:insight_vortex,urn:nasa:pds:context:instrument:apss-twins.insight,Winds
-urn:nasa:pds:insight_vortex,urn:nasa:pds:context:instrument:apss-twins.insight,Temperature & Pressure Profiles
 urn:nasa:pds:insight_vortex,urn:nasa:pds:context:instrument:seis.insight,Dust
 urn:nasa:pds:jno.rss.raw.jugr,urn:nasa:pds:context:instrument:jno.rss,Gravitational Fields
 urn:nasa:pds:juno_jiram,urn:nasa:pds:context:instrument:jiram.jno,IR
@@ -162,9 +155,6 @@ urn:nasa:pds:pvmp_dlbi,urn:nasa:pds:context:instrument:pvmp.sp-north.dlbi,Winds
 urn:nasa:pds:pvo.orse,urn:nasa:pds:context:instrument:pvo.orse,Radio
 urn:nasa:pds:pvo.orse,urn:nasa:pds:context:instrument:pvo.orse,Temperature & Pressure Profiles
 urn:nasa:pds:pvo.orse,urn:nasa:pds:context:instrument:pvo.orse,Ionosphere
-urn:nasa:pds:saturn_thermosphere_h2_density_temp,urn:nasa:pds:context:instrument:cirs.co,IR
-urn:nasa:pds:saturn_thermosphere_h2_density_temp,urn:nasa:pds:context:instrument:cirs.co,Atmospheric Composition
-urn:nasa:pds:saturn_thermosphere_h2_density_temp,urn:nasa:pds:context:instrument:cirs.co,Temperature & Pressure Profiles
 urn:nasa:pds:saturn_thermosphere_h2_density_temp,urn:nasa:pds:context:instrument:uvis.co,UV
 urn:nasa:pds:saturn_thermosphere_h2_density_temp,urn:nasa:pds:context:instrument:uvis.co,Atmospheric Composition
 urn:nasa:pds:saturn_thermosphere_h2_density_temp,urn:nasa:pds:context:instrument:uvis.co,Temperature & Pressure Profiles
