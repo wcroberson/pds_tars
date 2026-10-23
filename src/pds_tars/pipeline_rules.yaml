@@ -740,6 +740,12 @@ mission_types:
   - names: ["Uranus and Neptune Photometry"]
     type: ground_based
 
+  # The irtf_io_photometry bundle and its collection name their investigation
+  # differently; both labels give only an Observatory and a Telescope (the
+  # IRTF 3.0-meter) as the observing system, with no spacecraft host.
+  - names: ["IRTF Photometry of Io", "IRTF Io Photometry"]
+    type: ground_based
+
   - names: ["McMath-Pierce Solar Telescope Spectra of Mercury"]
     type: ground_based
 
@@ -928,9 +934,12 @@ instrument_type_overrides:
       - "Viking Orbiter 2 Spacecraft Radio Science Subsystem (RSS)"
     investigation: "Viking Orbiters 1 and 2"
   # The co_iss_global-maps bundle label names its investigation "Name" (a
-  # template placeholder); the same instrument's collections name "Cassini".
+  # template placeholder); the same instrument's collections name
+  # "Cassini-Huygens" on every target (and also "Cassini" on Saturn).
+  # "Cassini-Huygens" resolves to orbiter at Saturn and flyby elsewhere in
+  # mission_types; "Cassini" has a Saturn entry only.
   - names: ["Imaging Science Subsystem - Narrow Angle (ISSNA) for CO"]
-    investigation: "Cassini"
+    investigation: "Cassini-Huygens"
 
 # ── Display name overrides ─────────────────────────────────────────────────────
 # For instruments where the PDS registry stores a LID-derived or redundant

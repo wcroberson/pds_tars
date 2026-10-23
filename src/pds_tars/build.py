@@ -28,7 +28,17 @@ the PDS registry recognizes as a context target. There's no planet+moons
 "system" grouping; a moon with its own ATM-node data (e.g. Io, Titan) is
 built and shipped as its own separate target like any planet.
 
-Run with:  .venv/bin/python pds_tars/build.py [TARGET ...] [--diagnostic] [--node NODE] [--years {bundle,collection}] [--refresh-contexts]
+An instrument appears on a target's table when its bundle lists that target
+by default. With --targets-from collection, it appears when one of its
+science collections lists the target instead, and the collection's parent
+bundle is read for the pairs whatever targets the bundle lists.
+
+A bundle or collection naming no instrument is left out by default. With
+--no-instrument observatory, it's listed under its observing system (or
+investigation), sorted by pairs whose LID is its telescope or facility.
+
+Run with:  .venv/bin/python pds_tars/build.py [TARGET ...] [--diagnostic] [--node NODE] [--years {bundle,collection}]
+               [--targets-from {bundle,collection}] [--no-instrument {drop,observatory}] [--refresh-contexts]
 """
 
 import argparse
@@ -50,8 +60,8 @@ from pds_tars.registry import (
     instrument_components, collection_fields, bundle_fields, clamp_to_investigation_dates,
     is_science_collection, is_ancillary_purpose, abbreviate, to_initials, scalar,
     investigation_identity, latest_versions, sorting_labels, parent_bundle_lids,
-    instrument_names_by_lid,
-    TITLE_KEY, NODE_KEY, CURRENT_YEAR,
+    instrument_names_by_lid, normalized_lids, fetch_products, bundles_by_lid, bare_lid,
+    TITLE_KEY, NODE_KEY, CURRENT_YEAR, BUNDLE_QUERY_FIELDS, COLLECTION_QUERY_FIELDS,
 )
 from pds_tars.interim_sorting_labels import add_interim_sorting_labels
 from pds_tars.render_html import write_diagnostic_html_table, write_pretty_html_table, write_basic_html_table
@@ -67,13 +77,26 @@ OUTPUT_DIR = os.path.join(_PROJECT_ROOT, "tables")
 
 # When True, drop collections whose purpose is entirely ancillary
 # (Engineering, Observation Geometry, Calibration, Navigation). Applies only
-# with --years collection, the one mode that reads collections.
+# with --years collection or --targets-from collection, the modes that read
+# collections.
 SCIENCE_ONLY = True
 
 # Where the table's years come from: each bundle's own Time_Coordinates, or
 # the Time_Coordinates of the instrument's collections inside each bundle.
 YEARS_FROM_BUNDLE = "bundle"
 YEARS_FROM_COLLECTION = "collection"
+
+# Which targets' tables an instrument appears on: those its bundle lists, or
+# those its science collections inside the bundle list.
+TARGETS_FROM_BUNDLE = "bundle"
+TARGETS_FROM_COLLECTION = "collection"
+
+# What a bundle or collection naming no instrument becomes: an unsorted
+# "(no instrument)" entry that adds no rows, or an entry named after its
+# observing system (or investigation), sorted by pairs on its telescope or
+# facility LID.
+NO_INSTRUMENT_DROP = "drop"
+NO_INSTRUMENT_OBSERVATORY = "observatory"
 
 
 # ── Abbreviation helper ────────────────────────────────────────────────────────
@@ -646,34 +669,75 @@ def _apply_registry_timeout(client, timeout_secs=_REGISTRY_REQUEST_TIMEOUT_SECS)
 
 # ── Bundle and collection entries ──────────────────────────────────────────────
 
+def _observatory_entry_name(fields):
+    """Returns the name a product naming no instrument is listed under.
+
+    The product's observing system (its observatory and telescope, e.g. "NASA
+    InfraRed Telescope Facility (IRTF)"), or failing that its investigation,
+    followed by "(no instrument)" so the chip's tooltip says what it is.
+
+    Args:
+        fields (dict): from bundle_fields() or collection_fields().
+
+    Returns (string):
+        e.g. "NASA InfraRed Telescope Facility (IRTF) (no instrument)", or
+        plain "(no instrument)" when the product names neither.
+    """
+    for names in (fields.get("observing_system"), fields.get("investigation")):
+        if names:
+            return f"{names[0]} (no instrument)"
+    return "(no instrument)"
+
+
 def _add_instrument_entries(by_instrument, title, fields, inst_lids, labels,
-                            inst_name_cache, spacecraft_ids, facility_ids):
+                            inst_name_cache, spacecraft_ids, facility_ids,
+                            pairs_add_instruments=True, no_instrument=NO_INSTRUMENT_DROP):
     """Adds one bundle's or collection's entry under each instrument it names.
 
     Each instrument's copy of fields gets "science_sorting_labels": the labels
     the sorting pairs give that instrument (empty if the pairs don't name
-    it). An instrument named only in the pairs, not in the product's own
-    instrument references, still gets an entry - the pairs are what sort it.
-    A product naming no instrument at all goes under "(no instrument)".
-    Mutates by_instrument in place.
+    it). With pairs_add_instruments, an instrument named only in the pairs,
+    not in the product's own instrument references, still gets an entry - the
+    pairs are what sort it.
+
+    A pair whose LID is one of the product's telescope or facility LIDs (see
+    observatory_lids()) isn't an instrument. It sorts a product that names no
+    instrument at all; with no_instrument=NO_INSTRUMENT_OBSERVATORY, that
+    product is listed under its observing system or investigation (see
+    _observatory_entry_name()) with those pairs' labels. With
+    NO_INSTRUMENT_DROP it goes under "(no instrument)" with no labels, so it
+    adds no rows. Mutates by_instrument in place.
 
     Args:
         by_instrument (dict): instrument display name -> {entry title: fields}.
         title (string): the bundle's or collection's title, used as the entry key.
         fields (dict): from bundle_fields() or collection_fields().
         inst_lids (list of strings): the product's own instrument LIDs.
-        labels (dict): normalized instrument LID -> labels, as returned by
+        labels (dict): normalized LID -> labels, as returned by
               sorting_labels() (merged across parent bundles for a collection).
         inst_name_cache (dict): from build_instrument_name_cache().
         spacecraft_ids (set): from build_instrument_name_cache().
         facility_ids (set): from build_instrument_name_cache().
+        pairs_add_instruments (bool): whether instruments named only in the
+              pairs get entries too. False limits the entries to inst_lids.
+        no_instrument (string): NO_INSTRUMENT_DROP or NO_INSTRUMENT_OBSERVATORY.
     """
-    names = instrument_names_by_lid(list(inst_lids) + list(labels),
+    observatories = normalized_lids(fields.get("observatory_lids") or [], spacecraft_ids, facility_ids)
+    paired_instruments = [lid for lid in labels if lid not in observatories] if pairs_add_instruments else []
+    names = instrument_names_by_lid(list(inst_lids) + paired_instruments,
                                     inst_name_cache, spacecraft_ids, facility_ids)
     if not names:
         entry = dict(fields)
-        entry["science_sorting_labels"] = []
-        by_instrument["(no instrument)"][title] = entry
+        if no_instrument == NO_INSTRUMENT_OBSERVATORY:
+            entry["science_sorting_labels"] = []
+            for lid in observatories:
+                for label in labels.get(lid, []):
+                    if label not in entry["science_sorting_labels"]:
+                        entry["science_sorting_labels"].append(label)
+            by_instrument[_observatory_entry_name(fields)][title] = entry
+        else:
+            entry["science_sorting_labels"] = []
+            by_instrument["(no instrument)"][title] = entry
         return
     for inst_lid, inst_name in names.items():
         entry = dict(fields)
@@ -686,7 +750,8 @@ def _add_instrument_entries(by_instrument, title, fields, inst_lids, labels,
 def _process_target(target_name, context, client, node_filter, node_suffix,
                     inst_name_cache, spacecraft_ids, facility_ids, investigation_cache,
                     omitted_lower, peppi_name_overrides, diagnostic,
-                    years_from=YEARS_FROM_BUNDLE):
+                    years_from=YEARS_FROM_BUNDLE, targets_from=TARGETS_FROM_BUNDLE,
+                    no_instrument=NO_INSTRUMENT_DROP):
     """Queries, categorizes, and writes output for one target.
 
     Raises on any failure (unknown target, registry error, etc.) rather than
@@ -716,6 +781,13 @@ def _process_target(target_name, context, client, node_filter, node_suffix,
         years_from (string): YEARS_FROM_BUNDLE to date each entry by its
               bundle's Time_Coordinates, or YEARS_FROM_COLLECTION to date it by
               each of the instrument's science collections inside the bundle.
+        targets_from (string): TARGETS_FROM_BUNDLE to place an instrument on
+              this target when its bundle lists the target, or
+              TARGETS_FROM_COLLECTION to place it when one of its science
+              collections does (the collection's parent bundle is then read
+              for the pairs, whatever targets the bundle lists).
+        no_instrument (string): NO_INSTRUMENT_DROP or
+              NO_INSTRUMENT_OBSERVATORY - see _add_instrument_entries().
     """
     peppi_name = peppi_name_overrides.get(target_name, target_name)
     if not hasattr(context.TARGETS, peppi_name):
@@ -747,56 +819,102 @@ def _process_target(target_name, context, client, node_filter, node_suffix,
     print(f"{target_label} LID : {body_target.lid}")
     print(f"Node filter : {node_filter or 'ALL'}\n")
 
-    target_bundles = latest_versions(pep.Products(client).has_target(body_target.lid).bundles())
+    target_query = pep.Products(client).has_target(body_target.lid)
+    target_bundles = latest_versions(fetch_products(target_query.bundles(), BUNDLE_QUERY_FIELDS))
+
+    # list of (peppi Product, fields dict): the target's science collections,
+    # every node - read only when years or targets come from collections.
+    all_node_collections = []
+    if years_from == YEARS_FROM_COLLECTION or targets_from == TARGETS_FROM_COLLECTION:
+        target_query = pep.Products(client).has_target(body_target.lid)
+        for col in fetch_products(target_query.collections(), COLLECTION_QUERY_FIELDS):
+            if not is_science_collection(col):
+                continue
+            if SCIENCE_ONLY and is_ancillary_purpose(col):
+                continue
+            fields = collection_fields(col, target_label)
+            clamp_to_investigation_dates(fields, investigation_cache)
+            all_node_collections.append((col, fields))
+    target_collections = [(col, fields) for col, fields in all_node_collections
+                          if not node_filter or fields["pds_node"] == node_filter]
+
+    # Targets from collections: the bundles used are the parents of this
+    # target's science collections, fetched by LID when the target's own
+    # bundle query didn't return them.
+    if targets_from == TARGETS_FROM_COLLECTION:
+        needed = set()
+        for _, fields in target_collections:
+            needed |= parent_bundle_lids(fields)
+        returned = {bare_lid(bundle.id) for bundle in target_bundles}
+        fetched, missing = bundles_by_lid(client, needed - returned)
+        target_bundles = [bundle for bundle in target_bundles if bare_lid(bundle.id) in needed] + fetched
+        print(f"Parent bundles fetched by LID : {len(fetched)}")
+        for lid in missing:
+            print(f"  NOTE: parent bundle {lid} is not in the registry - its collections get no sorting pairs")
+
     interim_count = add_interim_sorting_labels(target_bundles)
     print(f"Bundles : {len(target_bundles)}  ({interim_count} given interim sorting labels)")
 
     by_instrument = defaultdict(dict)
 
-    # has_target(...).bundles() returns every node's bundles regardless of --node;
-    # node_filter below only decides what reaches by_instrument. Tracked
-    # unconditionally so abbr_to_nodes never depends on a stale separate run.
+    # The target's bundles (or with targets from collections, its collections)
+    # cover every node regardless of --node; node_filter only decides what
+    # reaches by_instrument. Tracked unconditionally so abbr_to_nodes never
+    # depends on a stale separate run.
     all_nodes_by_instrument = defaultdict(set)
-
-    # dict: bundle LID -> {normalized instrument LID: labels}, for every bundle
-    # that passes node_filter - read again below when dating by collection.
-    labels_by_bundle = {}
-
-    for bundle in target_bundles:
-        pds_node = scalar(bundle.properties.get(NODE_KEY))
+    if targets_from == TARGETS_FROM_COLLECTION:
+        node_sources = [(col.properties, fields["pds_node"]) for col, fields in all_node_collections]
+    else:
+        node_sources = [(bundle.properties, scalar(bundle.properties.get(NODE_KEY))) for bundle in target_bundles]
+    for props, pds_node in node_sources:
         if pds_node:
-            for inst_name in instrument_components(bundle.properties, inst_name_cache, spacecraft_ids, facility_ids):
+            for inst_name in instrument_components(props, inst_name_cache, spacecraft_ids, facility_ids):
                 all_nodes_by_instrument[inst_name].add(pds_node)
 
-        if node_filter and pds_node != node_filter:
+    # dict: bundle LID -> instrument LIDs named by its science collections on
+    # this target - with targets from collections, the only instruments a
+    # bundle entry is made for.
+    collection_instruments = defaultdict(set)
+    for _, fields in target_collections:
+        for bundle_lid in parent_bundle_lids(fields):
+            collection_instruments[bundle_lid].update(fields["instrument_lid"] or [])
+
+    # dict: bundle LID -> {normalized LID: labels}, and bundle LID -> fields
+    # dict, for every bundle that passes node_filter - read again below when
+    # dating by collection.
+    labels_by_bundle = {}
+    fields_by_bundle = {}
+
+    for bundle in target_bundles:
+        if node_filter and scalar(bundle.properties.get(NODE_KEY)) != node_filter:
             continue
 
         fields = bundle_fields(bundle, target_label)
         clamp_to_investigation_dates(fields, investigation_cache)
         labels = sorting_labels(bundle.properties, spacecraft_ids, facility_ids)
         labels_by_bundle[fields["bundle_lid"]] = labels
+        fields_by_bundle[fields["bundle_lid"]] = fields
 
         if years_from == YEARS_FROM_BUNDLE:
             title = scalar(bundle.properties.get(TITLE_KEY)) or bundle.id
-            _add_instrument_entries(by_instrument, title, fields, fields["instrument_lid"] or [], labels,
-                                    inst_name_cache, spacecraft_ids, facility_ids)
+            if targets_from == TARGETS_FROM_COLLECTION:
+                _add_instrument_entries(by_instrument, title, fields,
+                                        sorted(collection_instruments[fields["bundle_lid"]]), labels,
+                                        inst_name_cache, spacecraft_ids, facility_ids,
+                                        pairs_add_instruments=False, no_instrument=no_instrument)
+            else:
+                _add_instrument_entries(by_instrument, title, fields, fields["instrument_lid"] or [], labels,
+                                        inst_name_cache, spacecraft_ids, facility_ids,
+                                        no_instrument=no_instrument)
 
     # Dating by collection: each of the instrument's science collections is its
     # own entry, sorted by the pairs on the bundle (or bundles) it belongs to.
+    # Only the collection's own instruments get entries, so one instrument's
+    # collection doesn't date another instrument named in the same bundle.
     if years_from == YEARS_FROM_COLLECTION:
-        for col in pep.Products(client).has_target(body_target.lid).collections():
-            if not is_science_collection(col):
-                continue
-            if SCIENCE_ONLY and is_ancillary_purpose(col):
-                continue
-            if node_filter and scalar(col.properties.get(NODE_KEY)) != node_filter:
-                continue
-
-            fields = collection_fields(col, target_label)
-            clamp_to_investigation_dates(fields, investigation_cache)
-
-            # dict: normalized instrument LID -> labels, merged across every
-            # parent bundle this target's bundle query returned
+        for col, fields in target_collections:
+            # dict: normalized LID -> labels, merged across every parent
+            # bundle read above
             labels = defaultdict(list)
             for bundle_lid in parent_bundle_lids(fields):
                 for inst_lid, inst_labels in labels_by_bundle.get(bundle_lid, {}).items():
@@ -804,11 +922,22 @@ def _process_target(target_name, context, client, node_filter, node_suffix,
                         if label not in labels[inst_lid]:
                             labels[inst_lid].append(label)
 
+            # A collection naming no instrument and no observatory of its own
+            # is described by its parent bundle's observatory.
+            entry_fields = dict(fields)
+            if not entry_fields["instrument_lid"] and not entry_fields["observatory_lids"]:
+                for bundle_lid in parent_bundle_lids(fields):
+                    bundle = fields_by_bundle.get(bundle_lid)
+                    if bundle and bundle["observatory_lids"]:
+                        entry_fields["observatory_lids"] = bundle["observatory_lids"]
+                        entry_fields["observing_system"] = (entry_fields["observing_system"]
+                                                            or bundle["observing_system"])
+                        break
+
             title = scalar(col.properties.get(TITLE_KEY)) or col.id
-            inst_lids = fields["instrument_lid"] or []
-            _add_instrument_entries(by_instrument, title, fields, inst_lids,
-                                    {lid: labels[lid] for lid in labels},
-                                    inst_name_cache, spacecraft_ids, facility_ids)
+            _add_instrument_entries(by_instrument, title, entry_fields, fields["instrument_lid"] or [],
+                                    dict(labels), inst_name_cache, spacecraft_ids, facility_ids,
+                                    pairs_add_instruments=False, no_instrument=no_instrument)
 
     for inst_name in [name for name in by_instrument if name.lower() in omitted_lower]:
         del by_instrument[inst_name]
@@ -950,7 +1079,8 @@ def _process_target(target_name, context, client, node_filter, node_suffix,
 # ── Pipeline orchestration ──────────────────────────────────────────────────────
 
 def run_pipeline(targets, diagnostic=False, node="ATM", refresh_contexts=False,
-                 years_from=YEARS_FROM_BUNDLE):
+                 years_from=YEARS_FROM_BUNDLE, targets_from=TARGETS_FROM_BUNDLE,
+                 no_instrument=NO_INSTRUMENT_DROP):
     """Runs the full pipeline for one or more targets.
 
     Holds every step main() used to run inline, taking plain arguments
@@ -963,7 +1093,9 @@ def run_pipeline(targets, diagnostic=False, node="ATM", refresh_contexts=False,
 
     For each target:
       1. Queries the PDS registry for the target's bundles (and, with
-         years_from=YEARS_FROM_COLLECTION, its science collections too).
+         years_from or targets_from set to collection, its science
+         collections too, plus any of their parent bundles the target's
+         bundle query didn't return).
       2. Groups them by instrument and reads each bundle's science sorting
          pairs for the categories.
       3. Builds category × year tables and writes the pretty/basic HTML output
@@ -984,6 +1116,10 @@ def run_pipeline(targets, diagnostic=False, node="ATM", refresh_contexts=False,
               This re-downloads the full catalog and can take several minutes.
         years_from (string): YEARS_FROM_BUNDLE (default) or
               YEARS_FROM_COLLECTION - see _process_target().
+        targets_from (string): TARGETS_FROM_BUNDLE (default) or
+              TARGETS_FROM_COLLECTION - see _process_target().
+        no_instrument (string): NO_INSTRUMENT_DROP (default) or
+              NO_INSTRUMENT_OBSERVATORY - see _add_instrument_entries().
 
     Returns (list of strings):
         target names (from targets) that failed, in the order queued;
@@ -1029,6 +1165,7 @@ def run_pipeline(targets, diagnostic=False, node="ATM", refresh_contexts=False,
                 inst_name_cache, spacecraft_ids, facility_ids, investigation_cache,
                 omitted_lower, peppi_name_overrides,
                 diagnostic=diagnostic, years_from=years_from,
+                targets_from=targets_from, no_instrument=no_instrument,
             )
         except Exception as exc:
             print(f"[SKIPPED] {target_name}: {exc}", file=sys.stderr)
@@ -1080,6 +1217,26 @@ def main():
              "come from the bundle's science sorting pairs either way.",
     )
     parser.add_argument(
+        "--targets-from",
+        choices=[TARGETS_FROM_BUNDLE, TARGETS_FROM_COLLECTION],
+        default=TARGETS_FROM_BUNDLE,
+        help="Which targets' tables an instrument appears on: those its bundle "
+             "lists (bundle, the default), or those its science collections "
+             "inside the bundle list (collection). With collection, each "
+             "collection's parent bundle is read for the sorting pairs even "
+             "when that bundle doesn't list the target.",
+    )
+    parser.add_argument(
+        "--no-instrument",
+        choices=[NO_INSTRUMENT_DROP, NO_INSTRUMENT_OBSERVATORY],
+        default=NO_INSTRUMENT_DROP,
+        help="What a bundle or collection naming no instrument becomes: left "
+             "out of the table (drop, the default), or listed under its "
+             "observing system (observatory/telescope), or its investigation "
+             "if it names none, sorted by sorting pairs on its telescope or "
+             "facility LID (observatory).",
+    )
+    parser.add_argument(
         "--refresh-contexts",
         action="store_true",
         help="Force a live re-fetch of the context-product catalog (instruments, "
@@ -1092,7 +1249,7 @@ def main():
 
     failed_targets = run_pipeline(
         targets, diagnostic=args.diagnostic, node=args.node, refresh_contexts=args.refresh_contexts,
-        years_from=args.years,
+        years_from=args.years, targets_from=args.targets_from, no_instrument=args.no_instrument,
     )
 
     if failed_targets:

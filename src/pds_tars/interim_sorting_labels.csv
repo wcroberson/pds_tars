@@ -48,6 +48,7 @@ urn:nasa:pds:insight_ps,urn:nasa:pds:context:instrument:apss-ps.insight,Temperat
 urn:nasa:pds:insight_twins,urn:nasa:pds:context:instrument:apss-twins.insight,Winds
 urn:nasa:pds:insight_twins,urn:nasa:pds:context:instrument:apss-twins.insight,Temperature & Pressure Profiles
 urn:nasa:pds:insight_vortex,urn:nasa:pds:context:instrument:seis.insight,Dust
+urn:nasa:pds:irtf_io_photometry,urn:nasa:pds:context:telescope:irtf.3m0,IR
 urn:nasa:pds:jno.rss.raw.jugr,urn:nasa:pds:context:instrument:jno.rss,Gravitational Fields
 urn:nasa:pds:juno_jiram,urn:nasa:pds:context:instrument:jiram.jno,IR
 urn:nasa:pds:juno_jiram,urn:nasa:pds:context:instrument:jiram.jno,Clouds
@@ -62,6 +63,8 @@ urn:nasa:pds:juno_mwr,urn:nasa:pds:context:instrument:mwr.jno,Clouds
 urn:nasa:pds:juno_mwr,urn:nasa:pds:context:instrument:mwr.jno,Atmospheric Composition
 urn:nasa:pds:junocam_atm-ml-calib,urn:nasa:pds:context:instrument:junocam.jno,Visual
 urn:nasa:pds:junocam_atm-ml-calib,urn:nasa:pds:context:instrument:junocam.jno,Clouds
+urn:nasa:pds:lowell_uranus-neptune-photometry,urn:nasa:pds:context:telescope:lowell.21in0,Visual
+urn:nasa:pds:lowell_uranus-neptune-photometry,urn:nasa:pds:context:telescope:lowell.21in0,Clouds
 urn:nasa:pds:mars2020_meda,urn:nasa:pds:context:instrument:mars2020.meda,Visual
 urn:nasa:pds:mars2020_meda,urn:nasa:pds:context:instrument:mars2020.meda,Temperature & Pressure Profiles
 urn:nasa:pds:mars2020_moxie,urn:nasa:pds:context:instrument:mars2020.moxie,Atmospheric Composition

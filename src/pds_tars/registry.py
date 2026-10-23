@@ -54,6 +54,10 @@ TITLE_KEY         = "pds:Identification_Area.pds:title"
 INST_LID_KEY      = "ref_lid_instrument"
 DESCRIPTION_KEY   = "pds:Citation_Information.pds:description"
 COLLECTION_TYPE_KEY = "pds:Collection.pds:collection_type"
+LIDVID_KEY        = "lidvid"
+OBSERVING_SYSTEM_KEY = "pds:Observing_System.pds:name"
+TELESCOPE_LID_KEY = "ref_lid_telescope"
+FACILITY_LID_KEY  = "ref_lid_facility"
 
 # Science sorting pairs from the ATM sorting dictionary, carried on bundle
 # labels. Each Instrument_Sorting element holds exactly one instrument LID and
@@ -73,6 +77,33 @@ INVEST_TYPE_KEY  = "pds:Investigation.pds:type"
 INVEST_START_KEY = "pds:Investigation.pds:start_date"
 INVEST_STOP_KEY  = "pds:Investigation.pds:stop_date"
 INVEST_DESC_KEY  = "pds:Investigation.pds:description"
+
+# ── Fields asked of the registry ──────────────────────────────────────────────
+# Every product query names the properties it reads, so the registry sends
+# only those instead of each product's full label record. A property added to
+# bundle_fields(), collection_fields() or the context-cache refresh must be
+# added to its list here too, or it comes back absent.
+
+BUNDLE_QUERY_FIELDS = [
+    LIDVID_KEY, NODE_KEY, TITLE_KEY, INVESTIGATION_KEY, START_KEY, STOP_KEY,
+    DESCRIPTION_KEY, INST_LID_KEY, STATUS_KEY, SORTING_INST_LID_KEY, SORTING_LABEL_KEY,
+    OBSERVING_SYSTEM_KEY, TELESCOPE_LID_KEY, FACILITY_LID_KEY,
+]
+
+COLLECTION_QUERY_FIELDS = [
+    LIDVID_KEY, NODE_KEY, TITLE_KEY, INVESTIGATION_KEY, START_KEY, STOP_KEY,
+    PROC_KEY, PURPOSE_KEY, WL_KEY, DISCIPLINE_KEY, FACET1_KEY, FACET2_KEY,
+    DESCRIPTION_KEY, DOMAIN_KEY, INST_LID_KEY, BUNDLE_KEY, STATUS_KEY,
+    COLLECTION_TYPE_KEY, OBSERVING_SYSTEM_KEY, TELESCOPE_LID_KEY, FACILITY_LID_KEY,
+]
+
+CONTEXT_QUERY_FIELDS = [
+    CONTEXT_LID_KEY, INST_NAME_KEY,
+    INVEST_NAME_KEY, INVEST_TYPE_KEY, INVEST_START_KEY, INVEST_STOP_KEY, INVEST_DESC_KEY,
+]
+
+# What the registry returns for a requested property a product doesn't have.
+NULL_VALUE = "null"
 
 # Used to mark missions and instruments that continue into the future
 # as ongoing.
@@ -129,6 +160,60 @@ def listify(v):
     if isinstance(v, list):
         return v or None
     return [v]
+
+
+# ── Registry queries ──────────────────────────────────────────────────────────
+
+def fetch_products(query, fields):
+    """Runs a peppi product query asking only for the given properties.
+
+    A product without one of the requested properties comes back with it set
+    to ["null"] rather than left out. Those are removed here, so the rest of
+    the pipeline sees a missing property as absent, the same as it would
+    without a field list.
+
+    Args:
+        query (peppi Products): an unrun query, e.g.
+              pep.Products(client).has_target(lid).bundles().
+        fields (list of strings): property names to ask for, e.g.
+              BUNDLE_QUERY_FIELDS.
+
+    Returns (list of peppi Products):
+        every product the query returns.
+    """
+    products = list(query.fields(fields))
+    for product in products:
+        props = product.properties
+        for key in [key for key, value in props.items() if value in (NULL_VALUE, [NULL_VALUE])]:
+            del props[key]
+    return products
+
+
+def bundles_by_lid(client, lids):
+    """Fetches bundles by LID, one registry request each, newest version only.
+
+    For bundles that a target's own bundle query doesn't return - e.g. the
+    parent bundle of a collection on that target, when the bundle lists other
+    targets or none.
+
+    Args:
+        client (peppi PDSRegistryClient).
+        lids (iterable of strings): bundle LIDs without versions.
+
+    Returns (tuple):
+        (bundles, missing): bundles is a list of peppi Products, one per LID
+        found; missing is a sorted list of the LIDs the registry has no
+        product for.
+    """
+    found = []
+    missing = []
+    for lid in sorted(lids):
+        products = fetch_products(pep.Products(client).filter(f'lid eq "{lid}"'), BUNDLE_QUERY_FIELDS)
+        if products:
+            found.extend(products)
+        else:
+            missing.append(lid)
+    return latest_versions(found), missing
 
 
 def _flatten_whitespace(text):
@@ -445,7 +530,7 @@ def _refresh_context_product_caches(client, force_refresh=False):
     # here - only the fetch is inside the try, so a bug in the processing
     # below still raises.
     try:
-        all_contexts = list(pep.Products(client).contexts())
+        all_contexts = fetch_products(pep.Products(client).contexts(), CONTEXT_QUERY_FIELDS)
     except Exception as exc:
         if _load_context_cache(allow_stale=True) is None or _load_investigation_cache(allow_stale=True) is None:
             raise
@@ -732,7 +817,40 @@ def collection_fields(col, target_label):
         "instrument_lid":    listify(props.get(INST_LID_KEY)),
         "parent_bundle_lid": listify(props.get(BUNDLE_KEY)),
         "archive_status":    scalar(props.get(STATUS_KEY)),
+        "observing_system":  listify(props.get(OBSERVING_SYSTEM_KEY)),
+        "observatory_lids":  observatory_lids(props),
     }
+
+
+def observatory_lids(props):
+    """Returns the telescope and facility LIDs a bundle or collection references.
+
+    These name where the data was taken when there's no instrument to name -
+    e.g. a ground-based photometry bundle referencing only its observatory and
+    telescope. A sorting pair for such a bundle uses one of these LIDs in place
+    of an instrument LID.
+
+    Args:
+        props (dict): peppi Product.properties for a bundle or collection.
+
+    Returns (list of strings):
+        telescope LIDs, then facility LIDs; empty if there are none.
+    """
+    return (listify(props.get(TELESCOPE_LID_KEY)) or []) + (listify(props.get(FACILITY_LID_KEY)) or [])
+
+
+def normalized_lids(lids, spacecraft_ids, facility_ids):
+    """Returns lids in the same normalized form sorting_labels() keys its pairs by.
+
+    Args:
+        lids (iterable of strings): instrument, telescope or facility LIDs.
+        spacecraft_ids (set): from build_instrument_name_cache().
+        facility_ids (set): from build_instrument_name_cache().
+
+    Returns (set of strings):
+        each LID after _normalize_instrument_lid().
+    """
+    return {_normalize_instrument_lid(lid, spacecraft_ids, facility_ids) for lid in lids}
 
 
 def bare_lid(lid):
@@ -850,6 +968,8 @@ def bundle_fields(bundle, target_label):
         "description":    _flatten_whitespace(scalar(props.get(DESCRIPTION_KEY))),
         "instrument_lid": listify(props.get(INST_LID_KEY)),
         "archive_status": scalar(props.get(STATUS_KEY)),
+        "observing_system": listify(props.get(OBSERVING_SYSTEM_KEY)),
+        "observatory_lids": observatory_lids(props),
     }
 
 

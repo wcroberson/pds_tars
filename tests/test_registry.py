@@ -11,6 +11,7 @@ from pds_tars.registry import (
     is_science_collection, is_ancillary_purpose, _resolve_investigation_keys,
     investigation_identity, investigation_date_bounds, clamp_to_investigation_dates,
     sorting_labels, latest_versions, parent_bundle_lids, bare_lid,
+    fetch_products, observatory_lids, TELESCOPE_LID_KEY, FACILITY_LID_KEY,
     INST_LID_KEY, PURPOSE_KEY, PROC_KEY, BUNDLE_KEY, START_KEY, STOP_KEY,
     SORTING_INST_LID_KEY, SORTING_LABEL_KEY,
 )
@@ -465,6 +466,34 @@ def test_parent_bundle_lids_prefers_registry_field_then_falls_back_to_lid():
 def test_bare_lid_strips_version():
     assert bare_lid("urn:nasa:pds:pvmp_dlbi::1.0") == "urn:nasa:pds:pvmp_dlbi"
 
+
+# ── fetch_products(): asking for named fields only ───────────────────────────
+
+def test_fetch_products_asks_for_fields_and_drops_null_values():
+    """A requested property a product doesn't have comes back as ["null"]; it
+    must be removed so the rest of the pipeline sees it as absent."""
+
+    class FakeProduct:
+        def __init__(self, props):
+            self.properties = props
+
+    class FakeQuery:
+        def fields(self, fields):
+            self.asked = fields
+            return [FakeProduct({START_KEY: ["null"], STOP_KEY: ["2001-01-01T00:00:00Z"]})]
+
+    query = FakeQuery()
+    products = fetch_products(query, [START_KEY, STOP_KEY])
+    assert query.asked == [START_KEY, STOP_KEY]
+    assert products[0].properties == {STOP_KEY: ["2001-01-01T00:00:00Z"]}
+
+def test_observatory_lids_lists_telescopes_then_facilities():
+    """Values from the irtf_io_photometry bundle record."""
+    props = {TELESCOPE_LID_KEY: ["urn:nasa:pds:context:telescope:irtf.3m0"],
+             FACILITY_LID_KEY: ["urn:nasa:pds:context:facility:observatory.irtf"]}
+    assert observatory_lids(props) == ["urn:nasa:pds:context:telescope:irtf.3m0",
+                                       "urn:nasa:pds:context:facility:observatory.irtf"]
+    assert observatory_lids({}) == []
 
 # ── Context caches: falling back to an old copy when the refresh fails ──────
 

@@ -172,6 +172,53 @@ def test_add_instrument_entries_gives_each_instrument_only_its_own_labels():
     assert by_instrument["Instrument B (B)"]["Bundle"]["science_sorting_labels"] == ["Winds", "Radio"]
     assert by_instrument["Instrument C (C)"]["Bundle"]["science_sorting_labels"] == []
 
+def test_add_instrument_entries_can_limit_entries_to_the_products_own_instruments():
+    """With pairs_add_instruments=False, an instrument named only in the pairs
+    gets no entry - a collection of instrument A must not date instrument B."""
+    by_instrument = defaultdict(dict)
+    build._add_instrument_entries(
+        by_instrument, "Collection", {"start": "2000-01-01T00:00:00Z"},
+        ["urn:nasa:pds:context:instrument:a.sc"],
+        {"urn:nasa:pds:context:instrument:a.sc": ["UV"],
+         "urn:nasa:pds:context:instrument:b.sc": ["Winds"]},
+        {"urn:nasa:pds:context:instrument:a.sc": "Instrument A (A)",
+         "urn:nasa:pds:context:instrument:b.sc": "Instrument B (B)"},
+        set(), set(), pairs_add_instruments=False,
+    )
+    assert list(by_instrument) == ["Instrument A (A)"]
+
+_IRTF_FIELDS = {
+    "start": "1983-02-09T00:00:00Z",
+    "observing_system": ["NASA InfraRed Telescope Facility (IRTF)"],
+    "investigation": ["IRTF Photometry of Io"],
+    "observatory_lids": ["urn:nasa:pds:context:telescope:irtf.3m0"],
+}
+_IRTF_LABELS = {"urn:nasa:pds:context:telescope:irtf.3m0": ["IR"]}
+
+def test_no_instrument_product_listed_under_its_observing_system_when_asked():
+    """With no_instrument=observatory, a bundle naming no instrument goes under
+    its observing system, sorted by the pair on its telescope LID - and the
+    telescope LID is never mistaken for an instrument."""
+    by_instrument = defaultdict(dict)
+    build._add_instrument_entries(
+        by_instrument, "Bundle", _IRTF_FIELDS, [], _IRTF_LABELS, {}, set(), set(),
+        no_instrument=build.NO_INSTRUMENT_OBSERVATORY,
+    )
+    assert list(by_instrument) == ["NASA InfraRed Telescope Facility (IRTF) (no instrument)"]
+    entry = by_instrument["NASA InfraRed Telescope Facility (IRTF) (no instrument)"]["Bundle"]
+    assert entry["science_sorting_labels"] == ["IR"]
+
+def test_no_instrument_product_unsorted_by_default():
+    """By default a bundle naming no instrument gets an unsorted entry."""
+    by_instrument = defaultdict(dict)
+    build._add_instrument_entries(by_instrument, "Bundle", _IRTF_FIELDS, [], _IRTF_LABELS, {}, set(), set())
+    assert by_instrument["(no instrument)"]["Bundle"]["science_sorting_labels"] == []
+
+def test_observatory_entry_name_falls_back_to_investigation():
+    fields = dict(_IRTF_FIELDS, observing_system=None)
+    assert build._observatory_entry_name(fields) == "IRTF Photometry of Io (no instrument)"
+    assert build._observatory_entry_name({}) == "(no instrument)"
+
 # ── _process_target() / main(): CLI safety behavior ────────────────────────────
 
 def test_process_target_raises_clear_error_for_unknown_target():
