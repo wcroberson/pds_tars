@@ -62,8 +62,8 @@ from pds_tars.registry import (
     investigation_identity, latest_versions, sorting_labels, parent_bundle_lids,
     instrument_names_by_lid, normalized_lids, fetch_products, bundles_by_lid, bare_lid,
     TITLE_KEY, NODE_KEY, CURRENT_YEAR, BUNDLE_QUERY_FIELDS, COLLECTION_QUERY_FIELDS,
+    SORTING_INST_LID_KEY,
 )
-from pds_tars.interim_sorting_labels import add_interim_sorting_labels
 from pds_tars.render_html import write_diagnostic_html_table, write_pretty_html_table, write_basic_html_table
 
 # Package lives at <project_root>/src/pds_tars/ - tables/
@@ -852,8 +852,8 @@ def _process_target(target_name, context, client, node_filter, node_suffix,
         for lid in missing:
             print(f"  NOTE: parent bundle {lid} is not in the registry - its collections get no sorting pairs")
 
-    interim_count = add_interim_sorting_labels(target_bundles)
-    print(f"Bundles : {len(target_bundles)}  ({interim_count} given interim sorting labels)")
+    paired_count = sum(1 for bundle in target_bundles if bundle.properties.get(SORTING_INST_LID_KEY))
+    print(f"Bundles : {len(target_bundles)}  ({paired_count} with science sorting pairs)")
 
     by_instrument = defaultdict(dict)
 

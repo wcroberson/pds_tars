@@ -22,4 +22,4 @@ pipeline-build = "pds_tars.build:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-pds_tars = ["pipeline_rules.yaml", "interim_sorting_labels.csv"]
+pds_tars = ["pipeline_rules.yaml"]
