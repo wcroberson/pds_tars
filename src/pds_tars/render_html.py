@@ -17,7 +17,7 @@ from collections import defaultdict
 
 from jinja2 import Environment   # pip install jinja2
 
-from pds_tars.schema import SECTION_ORDER, CATEGORY_SECTIONS, sorted_rows, collect_years, MISSION_TYPE_DISPLAY, MISSION_LANDING_PAGES
+from pds_tars.schema import rows_in_order, sorted_rows, collect_years, MISSION_TYPE_DISPLAY, MISSION_LANDING_PAGES
 from pds_tars.rule_engine import landing_page_for_mission, mission_type_for
 
 # Package lives at <project_root>/src/pds_tars/ -
@@ -553,7 +553,7 @@ def write_diagnostic_html_table(section_tables, name_to_abbr, abbr_to_missions,
         target_label (string): human-readable target name for the page title.
     """
     sections_prepared = [
-        (section_name, sorted_rows(set(table), CATEGORY_SECTIONS[section_name]), table)
+        (section_name, sorted_rows(set(table), rows_in_order(section_name)), table)
         for section_name, table in section_tables.items()
     ]
     all_years = collect_years(*section_tables.values())
@@ -634,8 +634,10 @@ def write_diagnostic_html_table(section_tables, name_to_abbr, abbr_to_missions,
 
     # ── JavaScript ────────────────────────────────────────────────────────────
     # SECTION_ORDER / SECTIONS lines interpolate Python values; the rest is literal JS.
-    section_order_json = json.dumps(SECTION_ORDER)
-    sections_json      = json.dumps({section: CATEGORY_SECTIONS[section] for section in SECTION_ORDER})
+    # section_tables is already in display order (see build_table_data()).
+    section_order_json = json.dumps(list(section_tables))
+    sections_json      = json.dumps({section: sorted_rows(set(table), rows_in_order(section))
+                                     for section, table in section_tables.items()})
 
     details_json = json.dumps({
         abbr: {
@@ -1018,7 +1020,7 @@ def write_basic_html_table(section_tables, name_to_abbr, abbr_to_missions,
         target_label (string): human-readable target name for the page title.
     """
     sections_prepared = [
-        (section_name, sorted_rows(set(table), CATEGORY_SECTIONS[section_name]), table)
+        (section_name, sorted_rows(set(table), rows_in_order(section_name)), table)
         for section_name, table in section_tables.items()
     ]
     all_years = collect_years(*section_tables.values())
@@ -1181,7 +1183,7 @@ _PRETTY_TABLE_CONTENT = """\
      All filters are opt-out (everything on by default); clicking a button
      turns it grey and hides matching chips.
      Technique buttons only appear if at least one displayed instrument
-     has that tag (derived from the `techniques` block in pipeline_rules.yaml). #}
+     has that tag (from its "Technique:..." science sorting labels). #}
   {% if distinct_nodes or distinct_techniques %}
   <div class="filter-bar">
     {% if distinct_nodes %}
@@ -1719,13 +1721,13 @@ def write_pretty_html_table(section_tables, name_to_abbr, abbr_to_missions,
             )
 
     sections_prepared = [
-        (section_name, sorted_rows(set(table), CATEGORY_SECTIONS[section_name]), table)
+        (section_name, sorted_rows(set(table), rows_in_order(section_name)), table)
         for section_name, table in section_tables.items()
     ]
     # Independent of sections_prepared - the ground-based table only shows
     # categories that actually have ground-based data (see build_table_data()).
     gb_sections_prepared = [
-        (section_name, sorted_rows(set(table), CATEGORY_SECTIONS[section_name]), table)
+        (section_name, sorted_rows(set(table), rows_in_order(section_name)), table)
         for section_name, table in gb_section_tables.items()
     ]
 

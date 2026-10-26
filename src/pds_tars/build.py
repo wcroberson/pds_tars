@@ -51,10 +51,10 @@ from collections import defaultdict, namedtuple
 import pds.peppi as pep
 
 from pds_tars.schema import (
-    SECTION_ORDER, SECTION_OF_CATEGORY, OMITTED_INSTRUMENTS, INSTRUMENT_TYPE_OVERRIDES,
-    DISPLAY_NAME_OVERRIDES_BY_NAME,
+    OMITTED_INSTRUMENTS, INSTRUMENT_TYPE_OVERRIDES, DISPLAY_NAME_OVERRIDES_BY_NAME,
+    TECHNIQUE_SECTION, UNSECTIONED, split_label, sorted_sections,
 )
-from pds_tars.rule_engine import make_attrs, abbr_mission_type, landing_page_for_mission, technique_categories
+from pds_tars.rule_engine import abbr_mission_type, landing_page_for_mission
 from pds_tars.registry import (
     build_context, build_instrument_name_cache, build_investigation_cache,
     instrument_components, collection_fields, bundle_fields, clamp_to_investigation_dates,
@@ -62,6 +62,7 @@ from pds_tars.registry import (
     investigation_identity, latest_versions, sorting_labels, parent_bundle_lids,
     instrument_names_by_lid, normalized_lids, fetch_products, bundles_by_lid, bare_lid,
     TITLE_KEY, NODE_KEY, CURRENT_YEAR, BUNDLE_QUERY_FIELDS, COLLECTION_QUERY_FIELDS,
+    PipelineError,
 )
 from pds_tars.interim_sorting_labels import add_interim_sorting_labels
 from pds_tars.render_html import write_diagnostic_html_table, write_pretty_html_table, write_basic_html_table
@@ -97,6 +98,10 @@ TARGETS_FROM_COLLECTION = "collection"
 # facility LID.
 NO_INSTRUMENT_DROP = "drop"
 NO_INSTRUMENT_OBSERVATORY = "observatory"
+
+
+class UnknownTarget(PipelineError, ValueError):
+    """A target name the PDS registry's target catalog doesn't have."""
 
 
 # ── Abbreviation helper ────────────────────────────────────────────────────────
@@ -237,47 +242,12 @@ def _get_abbr(name, name_to_abbr, abbr_used, display_name_map=None):
 
 # ── Table data builder ─────────────────────────────────────────────────────────
 
-def _instrument_attrs(name, fields, wavelength_range=None):
-    """Builds a make_attrs() dict from one bundle's or collection's raw field dict.
-
-    Used for technique matching. Every call site building a technique-matching
-    attrs dict needs the same set of fields. Routing them all
-    through one builder means a new field only needs to be added here -
-    separate call sites can silently drift out of sync (one gets a new field
-    like domain/investigation, another doesn't, and it keeps matching
-    against an empty list with no error).
-
-    Args:
-        name (string): instrument display name (becomes attrs["title"]).
-        fields (dict): one bundle's or collection's field dict (a value from
-              a by_instrument[name] dict).
-        wavelength_range (list of strings or None): override for
-              fields["wavelength_range"], e.g. an agreed-upon
-              multi-instrument fallback value; falls back to
-              fields.get("wavelength_range") if omitted.
-
-    Returns (dict):
-        a make_attrs() attrs dict.
-    """
-    return make_attrs(
-        title=name,
-        discipline=fields.get("discipline") or [],
-        facet1=fields.get("facet1") or [],
-        facet2=fields.get("facet2") or [],
-        wavelength_range=(
-            (fields.get("wavelength_range") or []) if wavelength_range is None else wavelength_range
-        ),
-        description=fields.get("description") or "",
-        domain=fields.get("domain") or [],
-        investigation=fields.get("investigation") or [],
-    )
-
-
 TableData = namedtuple("TableData", [
     "section_tables", "name_to_abbr", "abbr_to_missions", "abbr_to_fullname",
     "abbr_to_mission_type", "abbr_to_landing_page", "ground_based_abbrs",
     "abbr_to_display_name", "category_spans", "gb_section_tables",
     "gb_category_spans", "category_collection_counts", "gb_category_collection_counts",
+    "abbr_to_techniques", "abbr_to_technique_counts",
 ])
 
 
@@ -343,11 +313,15 @@ def build_table_data(by_instrument, planet=None, investigation_cache=None):
     Works entirely from the already-fetched by_instrument dict, so no second
     registry query is needed.
 
-    Each entry's categories are its "science_sorting_labels" - the labels its
-    bundle's sorting pairs give that instrument - and its year is the entry's
-    own start year. An entry is a bundle, or with --years collection, one of
-    the instrument's collections inside a bundle. A label that isn't a
-    category in pipeline_rules.yaml is skipped with a printed warning.
+    Each entry's rows are its "science_sorting_labels" - the "Section:Category"
+    labels its bundle's sorting pairs give that instrument - and its year is
+    the entry's own start year. An entry is one of the instrument's
+    collections inside a bundle, or with --years bundle, the bundle itself.
+    Sections and rows are whatever the labels name; pipeline_rules.yaml's
+    display_order only orders them. Labels in the TECHNIQUE_SECTION (e.g.
+    "Technique:Imaging") make no rows - they become the instrument's
+    technique tags. A label with no section goes under UNSECTIONED, with a
+    printed warning.
 
     Args:
         by_instrument (dict): instrument display name -> a dict of
@@ -362,20 +336,14 @@ def build_table_data(by_instrument, planet=None, investigation_cache=None):
               planet-scoped entries in pipeline_rules.yaml take precedence
               over unscoped ones.
         investigation_cache (dict or None): from build_investigation_cache().
-              Used only to enforce that every instrument resolves to exactly
-              one real mission (see the "more than one mission" ValueError
-              raised below); pass None only in contexts (e.g. tests) that
-              don't need that check.
-
-    Raises:
-        ValueError: if, after instrument_type_overrides' optional
-              "investigation" overrides are applied, some instrument's
-              entries (bundles or collections) still name more than one real mission (e.g. a
-              collection that's a joint product built from several
-              spacecrafts' data, but - like every current PDS4 collection -
-              records only one investigation on itself). Add an
-              "investigation" override for that instrument's exact name
-              under instrument_type_overrides in pipeline_rules.yaml.
+              Used only to check that every instrument resolves to exactly
+              one real mission; pass None only in contexts (e.g. tests) that
+              don't need that check. An instrument whose entries still name
+              more than one real mission, after instrument_type_overrides'
+              optional "investigation" overrides, gets a printed warning and
+              keeps every name (its chip then shows them all). The fix is an
+              "investigation" override for that instrument's exact name under
+              instrument_type_overrides in pipeline_rules.yaml.
 
     Returns (TableData):
           section_tables (dict): section name -> category label -> year
@@ -438,14 +406,19 @@ def build_table_data(by_instrument, planet=None, investigation_cache=None):
           gb_category_collection_counts (dict): same shape as
               category_collection_counts, ground-based abbreviations only,
               for gb_section_tables' own chips.
+          abbr_to_techniques (dict): abbreviation -> set of technique names
+              from its TECHNIQUE_SECTION labels (e.g. {"Imaging"}); only
+              abbreviations with at least one.
+          abbr_to_technique_counts (dict): abbreviation -> technique name ->
+              count of entries carrying that technique label.
 
         Empty rows (all year cells empty) and sections that become entirely
         empty after ground-based removal are pruned before returning.
     """
-    section_tables = {
-        section: defaultdict(lambda: defaultdict(set))
-        for section in SECTION_ORDER
-    }
+    # dict: section -> category -> year -> abbrs, sections added as labels name them
+    section_tables = defaultdict(lambda: defaultdict(lambda: defaultdict(set)))
+    abbr_to_techniques = defaultdict(set)
+    abbr_to_technique_counts = defaultdict(lambda: defaultdict(int))
 
     name_to_abbr     = {}
     abbr_used        = set()
@@ -463,10 +436,10 @@ def build_table_data(by_instrument, planet=None, investigation_cache=None):
     }
     display_name_map.update(DISPLAY_NAME_OVERRIDES_BY_NAME)
 
-    # dict: unknown label -> set of instrument names carrying it. A label not in
-    # pipeline_rules.yaml's sections has no row to go in, so it's reported
-    # rather than silently dropped.
-    unknown_labels = defaultdict(set)
+    # dict: label with no section -> set of instrument names carrying it. It
+    # still gets a row (under UNSECTIONED), but is reported so the label can be
+    # fixed.
+    unsectioned_labels = defaultdict(set)
 
     for inst_name, entries in by_instrument.items():
         abbr = _get_abbr(inst_name, name_to_abbr, abbr_used, display_name_map)
@@ -479,12 +452,17 @@ def build_table_data(by_instrument, planet=None, investigation_cache=None):
 
             cats_hit = set()
             for label in fields.get("science_sorting_labels") or []:
-                section_name = SECTION_OF_CATEGORY.get(label)
-                if section_name is None:
-                    unknown_labels[label].add(inst_name)
+                section_name, category = split_label(label)
+                if not category:
                     continue
-                section_tables[section_name][label][year].add(abbr)
-                cats_hit.add(label)
+                if section_name == TECHNIQUE_SECTION:
+                    abbr_to_techniques[abbr].add(category)
+                    abbr_to_technique_counts[abbr][category] += 1
+                    continue
+                if section_name == UNSECTIONED:
+                    unsectioned_labels[label].add(inst_name)
+                section_tables[section_name][category][year].add(abbr)
+                cats_hit.add(category)
 
             # Counted per category this entry actually hit, not once per instrument
             # - a 10-UV/1-Atmospheric-Composition instrument shows "10" and "1" on their
@@ -507,9 +485,14 @@ def build_table_data(by_instrument, planet=None, investigation_cache=None):
                     elif stop_year is not None:
                         span["end"] = stop_year if span["end"] is None else max(span["end"], stop_year)
 
-    for label, inst_names in sorted(unknown_labels.items()):
-        print(f"  WARNING: science sorting label {label!r} is not a category in "
-              f"pipeline_rules.yaml - skipped for {', '.join(sorted(inst_names))}")
+    for label, inst_names in sorted(unsectioned_labels.items()):
+        print(f"  WARNING: science sorting label {label!r} names no section (expected "
+              f"\"Section:Category\") - shown under {UNSECTIONED!r} for "
+              f"{', '.join(sorted(inst_names))}")
+
+    # Sections in display order (pipeline_rules.yaml's display_order, then any
+    # others alphabetically); each section's rows are ordered when rendered.
+    section_tables = {section: section_tables[section] for section in sorted_sections(section_tables)}
 
     # Drop spans with nothing to draw a line to: a single dated collection
     # (or several agreeing on one year) with no real end year past its own
@@ -540,12 +523,10 @@ def build_table_data(by_instrument, planet=None, investigation_cache=None):
         for abbr, missions in abbr_to_missions.items():
             identities = {investigation_identity(mission, investigation_cache) for mission in missions}
             if len(identities) > 1:
-                raise ValueError(
-                    f"{abbr_to_fullname.get(abbr, abbr)!r} (abbr {abbr!r}) resolves to more "
-                    f"than one mission: {sorted(missions)!r}. Add an \"investigation\" "
-                    f"override for this instrument's exact name under "
-                    f"instrument_type_overrides in pipeline_rules.yaml."
-                )
+                print(f"  WARNING: {abbr_to_fullname.get(abbr, abbr)!r} names more than one "
+                      f"mission: {sorted(missions)!r}. All are kept on its chip; to pick one, "
+                      f"add an \"investigation\" override for this instrument's exact name "
+                      f"under instrument_type_overrides in pipeline_rules.yaml.")
 
     abbr_to_mission_type = {
         abbr: abbr_mission_type(missions, planet)
@@ -635,6 +616,8 @@ def build_table_data(by_instrument, planet=None, investigation_cache=None):
         gb_category_spans=gb_category_spans,
         category_collection_counts=category_collection_counts,
         gb_category_collection_counts=gb_category_collection_counts,
+        abbr_to_techniques={abbr: techs for abbr, techs in abbr_to_techniques.items() if techs},
+        abbr_to_technique_counts={abbr: dict(counts) for abbr, counts in abbr_to_technique_counts.items()},
     )
 
 
@@ -754,10 +737,14 @@ def _process_target(target_name, context, client, node_filter, node_suffix,
                     no_instrument=NO_INSTRUMENT_DROP):
     """Queries, categorizes, and writes output for one target.
 
-    Raises on any failure (unknown target, registry error, etc.) rather than
-    handling it - main() wraps each call in try/except so one bad target in a
-    multi-target run is reported and skipped instead of aborting every target
-    queued after it.
+    Raises rather than handling a failure: PipelineError for a known cause
+    outside the code (an unknown target name; the registry down with no
+    saved results to fall back on), anything else for a bug. run_pipeline()
+    wraps each call in try/except so one bad target in a multi-target run is
+    reported and skipped instead of aborting every target queued after it.
+    Smaller problems - a product the registry returns in an unexpected shape,
+    mismatched sorting pairs - are reported as warnings and skipped, not
+    raised.
 
     Args:
         target_name (string): upper-cased, space-normalized target as given
@@ -791,10 +778,9 @@ def _process_target(target_name, context, client, node_filter, node_suffix,
     """
     peppi_name = peppi_name_overrides.get(target_name, target_name)
     if not hasattr(context.TARGETS, peppi_name):
-        raise ValueError(
-            f"unknown target {target_name!r} - no attribute {peppi_name!r} found "
-            f"in the PDS registry context catalog. Check the spelling, or run "
-            f"with --refresh-contexts if this is a newly archived target."
+        raise UnknownTarget(
+            f"unknown target {target_name!r} - the PDS registry's target catalog has no "
+            f"{peppi_name!r}. Check the spelling."
         )
     body_target = getattr(context.TARGETS, peppi_name)
     category_planet_label = target_name.title()
@@ -819,20 +805,33 @@ def _process_target(target_name, context, client, node_filter, node_suffix,
     print(f"{target_label} LID : {body_target.lid}")
     print(f"Node filter : {node_filter or 'ALL'}\n")
 
-    target_query = pep.Products(client).has_target(body_target.lid)
-    target_bundles = latest_versions(fetch_products(target_query.bundles(), BUNDLE_QUERY_FIELDS))
+    # Each query's result is saved under cache/registry_results/ and used
+    # instead, with a note, if the registry doesn't respond next time.
+    target_key = target_name.lower()
+    target_bundles = latest_versions(fetch_products(
+        lambda: pep.Products(client).has_target(body_target.lid).bundles(),
+        BUNDLE_QUERY_FIELDS, saved_as=f"{target_key}_bundles"))
 
     # list of (peppi Product, fields dict): the target's science collections,
     # every node - read only when years or targets come from collections.
     all_node_collections = []
     if years_from == YEARS_FROM_COLLECTION or targets_from == TARGETS_FROM_COLLECTION:
-        target_query = pep.Products(client).has_target(body_target.lid)
-        for col in fetch_products(target_query.collections(), COLLECTION_QUERY_FIELDS):
-            if not is_science_collection(col):
+        target_collections_found = fetch_products(
+            lambda: pep.Products(client).has_target(body_target.lid).collections(),
+            COLLECTION_QUERY_FIELDS, saved_as=f"{target_key}_collections")
+        for col in target_collections_found:
+            # A collection whose label the registry returns in an unexpected
+            # shape (e.g. two start dates) is skipped, not allowed to stop the
+            # whole target.
+            try:
+                if not is_science_collection(col):
+                    continue
+                if SCIENCE_ONLY and is_ancillary_purpose(col):
+                    continue
+                fields = collection_fields(col, target_label)
+            except ValueError as exc:
+                print(f"  WARNING: skipped collection {col.id}: {exc}")
                 continue
-            if SCIENCE_ONLY and is_ancillary_purpose(col):
-                continue
-            fields = collection_fields(col, target_label)
             clamp_to_investigation_dates(fields, investigation_cache)
             all_node_collections.append((col, fields))
     target_collections = [(col, fields) for col, fields in all_node_collections
@@ -889,9 +888,17 @@ def _process_target(target_name, context, client, node_filter, node_suffix,
         if node_filter and scalar(bundle.properties.get(NODE_KEY)) != node_filter:
             continue
 
-        fields = bundle_fields(bundle, target_label)
+        try:
+            fields = bundle_fields(bundle, target_label)
+        except ValueError as exc:
+            print(f"  WARNING: skipped bundle {bundle.id}: {exc}")
+            continue
         clamp_to_investigation_dates(fields, investigation_cache)
-        labels = sorting_labels(bundle.properties, spacecraft_ids, facility_ids)
+        try:
+            labels = sorting_labels(bundle.properties, spacecraft_ids, facility_ids)
+        except ValueError as exc:
+            print(f"  WARNING: ignored the science sorting pairs on bundle {bundle.id}: {exc}")
+            labels = {}
         labels_by_bundle[fields["bundle_lid"]] = labels
         fields_by_bundle[fields["bundle_lid"]] = fields
 
@@ -975,26 +982,11 @@ def _process_target(target_name, context, client, node_filter, node_suffix,
         for inst_name, abbr in name_to_abbr.items()
     }
 
-    # Technique tags: same rule engine as the category rows, but against
-    # pipeline_rules.yaml's `techniques` block (Imaging, Spectroscopy). No table
-    # rows - stored on chips so the pretty table can filter without a rebuild.
-    abbr_to_techniques        = {}
-    abbr_to_technique_counts  = {}
-    for inst_name, cols in by_instrument.items():
-        abbr = name_to_abbr.get(inst_name)
-        if not abbr:
-            continue
-        techs = set()
-        tech_counts = {}
-        for fields in cols.values():
-            col_attrs = _instrument_attrs(inst_name, fields)
-            col_techs = technique_categories(col_attrs)
-            techs.update(col_techs)
-            for tech in col_techs:
-                tech_counts[tech] = tech_counts.get(tech, 0) + 1
-        if techs:
-            abbr_to_techniques[abbr] = techs
-            abbr_to_technique_counts[abbr] = tech_counts
+    # Technique tags: from the "Technique:..." sorting labels (see
+    # build_table_data()). No table rows - stored on chips so the pretty table
+    # can filter without a rebuild.
+    abbr_to_techniques = table_data.abbr_to_techniques
+    abbr_to_technique_counts = table_data.abbr_to_technique_counts
 
     # Archive status for chip decorations: flags instruments with any non-archived
     # bundle (or collection) so staff can spot in-progress work at a glance - flat
@@ -1136,26 +1128,47 @@ def run_pipeline(targets, diagnostic=False, node="ATM", refresh_contexts=False,
     else:
         node_suffix = "_" + node.lower()
 
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    try:
+        os.makedirs(OUTPUT_DIR, exist_ok=True)
+    except OSError as exc:
+        print(f"ERROR: can't create the output folder {OUTPUT_DIR} ({exc}).", file=sys.stderr)
+        return list(targets)
 
     client  = pep.PDSRegistryClient()
     _apply_registry_timeout(client)
-    context = build_context(force_refresh=refresh_contexts)
-
-    print("Building instrument name cache…")
-    inst_name_cache, spacecraft_ids, facility_ids = build_instrument_name_cache(client, force_refresh=refresh_contexts)
-    print(f"Cached {len(inst_name_cache)} instrument LIDs")
-
-    print("Building investigation cache…")
-    investigation_cache = build_investigation_cache(client, force_refresh=refresh_contexts)
-    print(f"Cached {len(investigation_cache)} investigations\n")
-
-    omitted_lower = {name.lower() for name in OMITTED_INSTRUMENTS}
 
     # Some bodies have non-plain Peppi attribute names.
     peppi_name_overrides = {
         "PLUTO": "(134340)_PLUTO",
     }
+
+    # The catalogs every target needs. Each falls back to its saved copy if
+    # the registry doesn't respond; only with no saved copy at all does the
+    # run stop, and then every target is reported as failed with the reason.
+    try:
+        context = build_context(force_refresh=refresh_contexts)
+
+        # A target missing from the saved target catalog may be newly archived:
+        # refresh the catalog once before calling the name unknown.
+        missing = [name for name in targets
+                   if not hasattr(context.TARGETS, peppi_name_overrides.get(name, name))]
+        if missing and not refresh_contexts:
+            print(f"  NOTE: {', '.join(missing)} not in the saved target catalog; "
+                  f"refreshing it from the registry.")
+            context = build_context(force_refresh=True)
+
+        print("Building instrument name cache…")
+        inst_name_cache, spacecraft_ids, facility_ids = build_instrument_name_cache(client, force_refresh=refresh_contexts)
+        print(f"Cached {len(inst_name_cache)} instrument LIDs")
+
+        print("Building investigation cache…")
+        investigation_cache = build_investigation_cache(client, force_refresh=refresh_contexts)
+        print(f"Cached {len(investigation_cache)} investigations\n")
+    except PipelineError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return list(targets)
+
+    omitted_lower = {name.lower() for name in OMITTED_INSTRUMENTS}
 
     failed_targets = []
     for target_name in targets:
@@ -1167,8 +1180,20 @@ def run_pipeline(targets, diagnostic=False, node="ATM", refresh_contexts=False,
                 diagnostic=diagnostic, years_from=years_from,
                 targets_from=targets_from, no_instrument=no_instrument,
             )
+        except PipelineError as exc:
+            # A known cause outside the code (unknown target, registry down
+            # with nothing saved): the reason is the whole story.
+            print(f"[SKIPPED] {target_name}: {exc}", file=sys.stderr)
+            failed_targets.append(target_name)
+            continue
+        except OSError as exc:
+            # e.g. the output folder isn't writable or the disk is full.
+            print(f"[SKIPPED] {target_name}: couldn't write its output ({exc}).", file=sys.stderr)
+            failed_targets.append(target_name)
+            continue
         except Exception as exc:
             print(f"[SKIPPED] {target_name}: {exc}", file=sys.stderr)
+            print("  This looks like a bug in the pipeline; details for reporting it:", file=sys.stderr)
             traceback.print_exc(file=sys.stderr)
             print(file=sys.stderr)
             failed_targets.append(target_name)

@@ -1,9 +1,10 @@
 """
-schema.py - Loads pipeline_rules.yaml and exposes the category vocabulary.
+schema.py - Loads pipeline_rules.yaml and parses science sorting labels.
 
-Single source of truth for section names, row labels, detection rules,
-technique tags, and table-ordering utilities.  All other pipeline modules
-import from here.
+Sections and categories come from the science sorting pairs on bundle labels,
+as "Section:Category" values - the sorting dictionary is their master list.
+pipeline_rules.yaml only gives their display order (display_order), plus
+mission types, landing pages and per-instrument overrides.
 """
 
 import os
@@ -11,14 +12,19 @@ import yaml
 
 _RULES_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "pipeline_rules.yaml")
 
+# The section whose labels are technique tags (e.g. "Technique:Imaging"),
+# stored on an instrument's chips for filtering instead of making table rows.
+TECHNIQUE_SECTION = "Technique"
+
+# Section for a label that names no section (no ":"), so it still shows.
+UNSECTIONED = "Other"
+
 
 def _load():
     """Parses pipeline_rules.yaml and returns its top-level data structures.
 
     Returns (tuple):
-        sections (dict): section name -> ordered row labels
-        category_rules (dict): category name -> list of rule dicts
-        technique_rules (dict): technique name -> list of rule dicts
+        display_order (dict): section name -> row labels, in display order
         mission_types (list): investigation name -> type mappings
         mission_landing_pages (list): investigation name -> URL mappings
         mission_type_display (list): type vocabulary with display metadata
@@ -29,9 +35,7 @@ def _load():
     """
     with open(_RULES_FILE, encoding="utf-8") as fh:
         data = yaml.safe_load(fh)
-    return (data["sections"],
-            data["category_rules"],
-            data["techniques"],
+    return (data.get("display_order") or {},
             data["mission_types"],
             data["mission_landing_pages"],
             data["mission_type_display"],
@@ -41,24 +45,11 @@ def _load():
             data.get("collection_date_overrides", []))
 
 
-(CATEGORY_SECTIONS, CATEGORY_RULES, TECHNIQUE_RULES,
+(DISPLAY_ORDER,
  MISSION_TYPES, MISSION_LANDING_PAGES, MISSION_TYPE_DISPLAY,
  OMITTED_INSTRUMENTS, INSTRUMENT_TYPE_OVERRIDES,
  _DISPLAY_NAME_OVERRIDES,
  _COLLECTION_DATE_OVERRIDES) = _load()
-
-ALL_CATEGORIES = []
-for _section_labels in CATEGORY_SECTIONS.values():
-    ALL_CATEGORIES.extend(_section_labels)
-
-SECTION_ORDER = list(CATEGORY_SECTIONS.keys())
-
-# dict: category label -> the section it's listed under. Science sorting
-# labels on bundles name a category only, so this finds its table section.
-SECTION_OF_CATEGORY = {}
-for _section_name, _section_labels in CATEGORY_SECTIONS.items():
-    for _label in _section_labels:
-        SECTION_OF_CATEGORY[_label] = _section_name
 
 # Rekeyed once here (each entry's own lookup key is already known when the
 # YAML list is parsed) so every caller gets an O(1) dict instead of each
@@ -72,20 +63,62 @@ COLLECTION_DATE_OVERRIDES_BY_LID = {
 }
 
 
+def split_label(label):
+    """Splits one science sorting label into its section and category.
+
+    Args:
+        label (string): e.g. "Atmosphere:Clouds" or "Technique:Imaging".
+              Whitespace around either part is ignored.
+
+    Returns (tuple):
+        (section, category). A label with no ":" has no section; it comes
+        back as (UNSECTIONED, label) so it still appears somewhere.
+    """
+    section, sep, category = label.partition(":")
+    if not sep:
+        return UNSECTIONED, label.strip()
+    return section.strip(), category.strip()
+
+
+def sorted_sections(observed):
+    """Returns observed section names in display order, extras appended sorted.
+
+    Args:
+        observed (iterable of strings): section names present in the data.
+
+    Returns (list of strings):
+        the display_order sections that appear in observed, then any others
+        alphabetically.
+    """
+    return sorted_rows(set(observed), list(DISPLAY_ORDER))
+
+
+def rows_in_order(section_name):
+    """Returns display_order's row list for one section (empty if unlisted).
+
+    Args:
+        section_name (string): a section name.
+
+    Returns (list of strings):
+        that section's rows from display_order, or [] if it isn't listed.
+    """
+    return DISPLAY_ORDER.get(section_name) or []
+
+
 def sorted_rows(observed, canonical_order):
     """Returns observed category rows in canonical order, extras appended sorted.
 
     Args:
         observed (set of strings): category names actually present in the data.
         canonical_order (list of strings): the preferred display order from
-              pipeline_rules.yaml.
+              pipeline_rules.yaml's display_order.
 
     Returns (list of strings):
         canonical rows that appear in observed, followed by any observed
         rows not in canonical_order, sorted alphabetically.
     """
     ordered = [row for row in canonical_order if row in observed]
-    # categories not yet added to pipeline_rules.yaml land here, sorted
+    # rows the pairs use that display_order doesn't list land here, sorted
     ordered += sorted(observed - set(canonical_order))
     return ordered
 
