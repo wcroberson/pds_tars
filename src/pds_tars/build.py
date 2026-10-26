@@ -33,12 +33,12 @@ science collections lists that target, and the collection's parent bundle is
 read for the pairs whatever targets the bundle lists. With --targets-from
 bundle, it appears when its bundle lists the target instead.
 
-A bundle or collection naming no instrument is left out by default. With
---no-instrument observatory, it's listed under its observing system (or
-investigation), sorted by pairs whose LID is its telescope or facility.
+A bundle or collection naming no instrument is listed under its observing
+system (or investigation), sorted by pairs whose LID is its telescope or
+facility.
 
 Run with:  .venv/bin/python pds_tars/build.py [TARGET ...] [--diagnostic] [--node NODE] [--years {bundle,collection}]
-               [--targets-from {bundle,collection}] [--no-instrument {drop,observatory}] [--refresh-contexts]
+               [--targets-from {bundle,collection}] [--refresh-contexts]
 """
 
 import argparse
@@ -91,13 +91,6 @@ YEARS_FROM_COLLECTION = "collection"
 # those its science collections inside the bundle list.
 TARGETS_FROM_BUNDLE = "bundle"
 TARGETS_FROM_COLLECTION = "collection"
-
-# What a bundle or collection naming no instrument becomes: an unsorted
-# "(no instrument)" entry that adds no rows, or an entry named after its
-# observing system (or investigation), sorted by pairs on its telescope or
-# facility LID.
-NO_INSTRUMENT_DROP = "drop"
-NO_INSTRUMENT_OBSERVATORY = "observatory"
 
 
 class UnknownTarget(PipelineError, ValueError):
@@ -674,7 +667,7 @@ def _observatory_entry_name(fields):
 
 def _add_instrument_entries(by_instrument, title, fields, inst_lids, labels,
                             inst_name_cache, spacecraft_ids, facility_ids,
-                            pairs_add_instruments=True, no_instrument=NO_INSTRUMENT_DROP):
+                            pairs_add_instruments=True):
     """Adds one bundle's or collection's entry under each instrument it names.
 
     Each instrument's copy of fields gets "science_sorting_labels": the labels
@@ -685,11 +678,9 @@ def _add_instrument_entries(by_instrument, title, fields, inst_lids, labels,
 
     A pair whose LID is one of the product's telescope or facility LIDs (see
     observatory_lids()) isn't an instrument. It sorts a product that names no
-    instrument at all; with no_instrument=NO_INSTRUMENT_OBSERVATORY, that
-    product is listed under its observing system or investigation (see
-    _observatory_entry_name()) with those pairs' labels. With
-    NO_INSTRUMENT_DROP it goes under "(no instrument)" with no labels, so it
-    adds no rows. Mutates by_instrument in place.
+    instrument at all: that product is listed under its observing system or
+    investigation (see _observatory_entry_name()) with those pairs' labels.
+    Mutates by_instrument in place.
 
     Args:
         by_instrument (dict): instrument display name -> {entry title: fields}.
@@ -703,7 +694,6 @@ def _add_instrument_entries(by_instrument, title, fields, inst_lids, labels,
         facility_ids (set): from build_instrument_name_cache().
         pairs_add_instruments (bool): whether instruments named only in the
               pairs get entries too. False limits the entries to inst_lids.
-        no_instrument (string): NO_INSTRUMENT_DROP or NO_INSTRUMENT_OBSERVATORY.
     """
     observatories = normalized_lids(fields.get("observatory_lids") or [], spacecraft_ids, facility_ids)
     paired_instruments = [lid for lid in labels if lid not in observatories] if pairs_add_instruments else []
@@ -711,16 +701,12 @@ def _add_instrument_entries(by_instrument, title, fields, inst_lids, labels,
                                     inst_name_cache, spacecraft_ids, facility_ids)
     if not names:
         entry = dict(fields)
-        if no_instrument == NO_INSTRUMENT_OBSERVATORY:
-            entry["science_sorting_labels"] = []
-            for lid in observatories:
-                for label in labels.get(lid, []):
-                    if label not in entry["science_sorting_labels"]:
-                        entry["science_sorting_labels"].append(label)
-            by_instrument[_observatory_entry_name(fields)][title] = entry
-        else:
-            entry["science_sorting_labels"] = []
-            by_instrument["(no instrument)"][title] = entry
+        entry["science_sorting_labels"] = []
+        for lid in observatories:
+            for label in labels.get(lid, []):
+                if label not in entry["science_sorting_labels"]:
+                    entry["science_sorting_labels"].append(label)
+        by_instrument[_observatory_entry_name(fields)][title] = entry
         return
     for inst_lid, inst_name in names.items():
         entry = dict(fields)
@@ -733,8 +719,7 @@ def _add_instrument_entries(by_instrument, title, fields, inst_lids, labels,
 def _process_target(target_name, context, client, node_filter, node_suffix,
                     inst_name_cache, spacecraft_ids, facility_ids, investigation_cache,
                     omitted_lower, peppi_name_overrides, diagnostic,
-                    years_from=YEARS_FROM_COLLECTION, targets_from=TARGETS_FROM_COLLECTION,
-                    no_instrument=NO_INSTRUMENT_DROP):
+                    years_from=YEARS_FROM_COLLECTION, targets_from=TARGETS_FROM_COLLECTION):
     """Queries, categorizes, and writes output for one target.
 
     Raises rather than handling a failure: PipelineError for a known cause
@@ -773,8 +758,6 @@ def _process_target(target_name, context, client, node_filter, node_suffix,
               TARGETS_FROM_COLLECTION to place it when one of its science
               collections does (the collection's parent bundle is then read
               for the pairs, whatever targets the bundle lists).
-        no_instrument (string): NO_INSTRUMENT_DROP or
-              NO_INSTRUMENT_OBSERVATORY - see _add_instrument_entries().
     """
     peppi_name = peppi_name_overrides.get(target_name, target_name)
     if not hasattr(context.TARGETS, peppi_name):
@@ -908,11 +891,10 @@ def _process_target(target_name, context, client, node_filter, node_suffix,
                 _add_instrument_entries(by_instrument, title, fields,
                                         sorted(collection_instruments[fields["bundle_lid"]]), labels,
                                         inst_name_cache, spacecraft_ids, facility_ids,
-                                        pairs_add_instruments=False, no_instrument=no_instrument)
+                                        pairs_add_instruments=False)
             else:
                 _add_instrument_entries(by_instrument, title, fields, fields["instrument_lid"] or [], labels,
-                                        inst_name_cache, spacecraft_ids, facility_ids,
-                                        no_instrument=no_instrument)
+                                        inst_name_cache, spacecraft_ids, facility_ids)
 
     # Dating by collection: each of the instrument's science collections is its
     # own entry, sorted by the pairs on the bundle (or bundles) it belongs to.
@@ -944,7 +926,7 @@ def _process_target(target_name, context, client, node_filter, node_suffix,
             title = scalar(col.properties.get(TITLE_KEY)) or col.id
             _add_instrument_entries(by_instrument, title, entry_fields, fields["instrument_lid"] or [],
                                     dict(labels), inst_name_cache, spacecraft_ids, facility_ids,
-                                    pairs_add_instruments=False, no_instrument=no_instrument)
+                                    pairs_add_instruments=False)
 
     for inst_name in [name for name in by_instrument if name.lower() in omitted_lower]:
         del by_instrument[inst_name]
@@ -1071,8 +1053,7 @@ def _process_target(target_name, context, client, node_filter, node_suffix,
 # ── Pipeline orchestration ──────────────────────────────────────────────────────
 
 def run_pipeline(targets, diagnostic=False, node="ATM", refresh_contexts=False,
-                 years_from=YEARS_FROM_COLLECTION, targets_from=TARGETS_FROM_COLLECTION,
-                 no_instrument=NO_INSTRUMENT_DROP):
+                 years_from=YEARS_FROM_COLLECTION, targets_from=TARGETS_FROM_COLLECTION):
     """Runs the full pipeline for one or more targets.
 
     Holds every step main() used to run inline, taking plain arguments
@@ -1110,8 +1091,6 @@ def run_pipeline(targets, diagnostic=False, node="ATM", refresh_contexts=False,
               YEARS_FROM_BUNDLE - see _process_target().
         targets_from (string): TARGETS_FROM_COLLECTION (default) or
               TARGETS_FROM_BUNDLE - see _process_target().
-        no_instrument (string): NO_INSTRUMENT_DROP (default) or
-              NO_INSTRUMENT_OBSERVATORY - see _add_instrument_entries().
 
     Returns (list of strings):
         target names (from targets) that failed, in the order queued;
@@ -1178,7 +1157,7 @@ def run_pipeline(targets, diagnostic=False, node="ATM", refresh_contexts=False,
                 inst_name_cache, spacecraft_ids, facility_ids, investigation_cache,
                 omitted_lower, peppi_name_overrides,
                 diagnostic=diagnostic, years_from=years_from,
-                targets_from=targets_from, no_instrument=no_instrument,
+                targets_from=targets_from,
             )
         except PipelineError as exc:
             # A known cause outside the code (unknown target, registry down
@@ -1252,16 +1231,6 @@ def main():
              "even when that bundle doesn't list the target.",
     )
     parser.add_argument(
-        "--no-instrument",
-        choices=[NO_INSTRUMENT_DROP, NO_INSTRUMENT_OBSERVATORY],
-        default=NO_INSTRUMENT_DROP,
-        help="What a bundle or collection naming no instrument becomes: left "
-             "out of the table (drop, the default), or listed under its "
-             "observing system (observatory/telescope), or its investigation "
-             "if it names none, sorted by sorting pairs on its telescope or "
-             "facility LID (observatory).",
-    )
-    parser.add_argument(
         "--refresh-contexts",
         action="store_true",
         help="Force a live re-fetch of the context-product catalog (instruments, "
@@ -1274,7 +1243,7 @@ def main():
 
     failed_targets = run_pipeline(
         targets, diagnostic=args.diagnostic, node=args.node, refresh_contexts=args.refresh_contexts,
-        years_from=args.years, targets_from=args.targets_from, no_instrument=args.no_instrument,
+        years_from=args.years, targets_from=args.targets_from,
     )
 
     if failed_targets:

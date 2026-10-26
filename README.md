@@ -74,7 +74,6 @@ Each run writes into `tables/<target>/`:
 | `--diagnostic` | Also write a diagnostic HTML table: a plain interactive category × year table with checkboxes, per-instrument notes, and a full collection detail view per instrument. Not part of the shipped product — useful for auditing what a target's data actually looks like. |
 | `--years {collection,bundle}` | Where each row's years come from: the instrument's science collections inside each bundle (`collection`, the default), or each bundle's own time range (`bundle`). Many bundle labels carry no time range, so `bundle` puts their data under "No Date". |
 | `--targets-from {collection,bundle}` | Which targets' tables an instrument appears on: those its science collections list (`collection`, the default), or those its bundle lists (`bundle`). With `collection`, a collection's parent bundle is read for the sorting labels even if the bundle doesn't list that target. |
-| `--no-instrument {drop,observatory}` | What happens to a bundle or collection that names no instrument (e.g. ground-based photometry that names only an observatory and telescope): left out (`drop`, the default), or listed under its observing system's name, e.g. "NASA InfraRed Telescope Facility (IRTF) (no instrument)", sorted by labels paired with its telescope or facility LID (`observatory`). |
 | `--refresh-contexts` | Force a live re-fetch of the registry's context-product catalog (instruments, spacecraft, investigations, targets) instead of using the on-disk cache. Can take several minutes; the catalog rarely changes, and a target missing from the saved catalog triggers a refresh on its own, so this is rarely needed. |
 
 Example:
@@ -101,6 +100,12 @@ Each bundle lists pairs of one `instrument_lid` and one
 An instrument with several labels on a bundle has one pair per label. The
 pairs apply to that bundle only, so an instrument can be sorted differently
 in different bundles.
+
+Data whose label names no instrument (e.g. ground-based photometry that names
+only an observatory and telescope) is listed under its observing system's
+name, e.g. "NASA InfraRed Telescope Facility (IRTF) (no instrument)", or its
+investigation's name if it gives no observing system. Its pairs use the
+telescope (or facility) LID in place of an instrument LID.
 
 `pipeline_rules.yaml` no longer decides categories. It holds only:
 
@@ -148,7 +153,9 @@ persisting between runs:
   automatically after 7 days, or immediately with `--refresh-contexts`.
 - `registry_results/` — the last successful result of each per-target
   query (a target's bundles and collections, and parent bundles fetched by
-  LID). Overwritten on every successful run; used only as a fallback.
+  LID). Overwritten on every successful run; used only as a fallback. Not
+  committed (see `.gitignore`), so a fresh clone has none until its first
+  successful run, and the repo never carries stale query results.
 
 Every registry query asks only for the fields the pipeline reads (peppi's
 `.fields()`), which keeps requests small.

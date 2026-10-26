@@ -241,24 +241,17 @@ _IRTF_FIELDS = {
 }
 _IRTF_LABELS = {"urn:nasa:pds:context:telescope:irtf.3m0": ["IR"]}
 
-def test_no_instrument_product_listed_under_its_observing_system_when_asked():
-    """With no_instrument=observatory, a bundle naming no instrument goes under
-    its observing system, sorted by the pair on its telescope LID - and the
-    telescope LID is never mistaken for an instrument."""
+def test_no_instrument_product_listed_under_its_observing_system():
+    """A bundle naming no instrument goes under its observing system, sorted by
+    the pair on its telescope LID - and the telescope LID is never mistaken
+    for an instrument."""
     by_instrument = defaultdict(dict)
     build._add_instrument_entries(
         by_instrument, "Bundle", _IRTF_FIELDS, [], _IRTF_LABELS, {}, set(), set(),
-        no_instrument=build.NO_INSTRUMENT_OBSERVATORY,
     )
     assert list(by_instrument) == ["NASA InfraRed Telescope Facility (IRTF) (no instrument)"]
     entry = by_instrument["NASA InfraRed Telescope Facility (IRTF) (no instrument)"]["Bundle"]
     assert entry["science_sorting_labels"] == ["IR"]
-
-def test_no_instrument_product_unsorted_by_default():
-    """By default a bundle naming no instrument gets an unsorted entry."""
-    by_instrument = defaultdict(dict)
-    build._add_instrument_entries(by_instrument, "Bundle", _IRTF_FIELDS, [], _IRTF_LABELS, {}, set(), set())
-    assert by_instrument["(no instrument)"]["Bundle"]["science_sorting_labels"] == []
 
 def test_observatory_entry_name_falls_back_to_investigation():
     fields = dict(_IRTF_FIELDS, observing_system=None)
