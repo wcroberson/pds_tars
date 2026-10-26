@@ -34,6 +34,25 @@ CONTEXT_TARGETS_CACHE_MAX_AGE_SECS = 7 * 24 * 60 * 60
 INVESTIGATION_CACHE_PATH = os.path.join(_PROJECT_ROOT, "cache", "context_investigations_cache.json")
 INVESTIGATION_CACHE_MAX_AGE_SECS = 7 * 24 * 60 * 60
 
+# The last successful result of each per-target registry query (a target's
+# bundles, its collections, a parent bundle fetched by LID), used when the
+# registry doesn't respond - see fetch_products().
+REGISTRY_RESULTS_DIR = os.path.join(_PROJECT_ROOT, "cache", "registry_results")
+
+# A failing registry request is tried this many times in all, waiting
+# REGISTRY_RETRY_WAIT_SECS x the attempt number before each retry - the
+# Search API has had stretches of failing on and off minute to minute.
+REGISTRY_ATTEMPTS = 3
+REGISTRY_RETRY_WAIT_SECS = 10
+
+
+class PipelineError(Exception):
+    """A failure with a known cause outside the code, reported without a traceback."""
+
+
+class RegistryUnavailable(PipelineError):
+    """The PDS registry didn't respond, and there was no saved copy to use instead."""
+
 # ── PDS4 property key constants ───────────────────────────────────────────────
 # All confirmed against the live registry.
 
@@ -59,13 +78,14 @@ OBSERVING_SYSTEM_KEY = "pds:Observing_System.pds:name"
 TELESCOPE_LID_KEY = "ref_lid_telescope"
 FACILITY_LID_KEY  = "ref_lid_facility"
 
-# Science sorting pairs from the ATM sorting dictionary, carried on bundle
-# labels. Each Instrument_Sorting element holds exactly one instrument LID and
-# exactly one label, so the registry's two flattened lists line up by position
-# (item N of one goes with item N of the other). "atmsort" is a placeholder
-# namespace until the dictionary is registered.
-SORTING_INST_LID_KEY = "atmsort:Instrument_Sorting.atmsort:instrument_lid"
-SORTING_LABEL_KEY    = "atmsort:Instrument_Sorting.atmsort:science_sorting_label"
+# Science sorting pairs from the sorting dictionary (namespace
+# science_category_sorting), carried on bundle labels. Each
+# Instrument_Sorting element holds exactly one instrument LID and exactly one
+# "Section:Category" label, so the registry's two flattened lists line up by
+# position (item N of one goes with item N of the other).
+SORTING_NAMESPACE    = "science_category_sorting"
+SORTING_INST_LID_KEY = f"{SORTING_NAMESPACE}:Instrument_Sorting.{SORTING_NAMESPACE}:instrument_lid"
+SORTING_LABEL_KEY    = f"{SORTING_NAMESPACE}:Instrument_Sorting.{SORTING_NAMESPACE}:science_sorting_label"
 
 # Property keys for instrument context products (not collections).
 INST_NAME_KEY = "pds:Instrument.pds:name"
@@ -164,7 +184,58 @@ def listify(v):
 
 # ── Registry queries ──────────────────────────────────────────────────────────
 
-def fetch_products(query, fields):
+def _first_line(exc):
+    """Returns the first line of an exception's message, or its type name.
+
+    For a RegistryUnavailable, uses the registry error underneath it, so a
+    message quoting it doesn't repeat the whole explanation.
+    """
+    if isinstance(exc, RegistryUnavailable) and exc.__cause__ is not None:
+        exc = exc.__cause__
+    return (str(exc).splitlines() or [type(exc).__name__])[0]
+
+
+class SavedProduct:
+    """Stand-in for a peppi Product, restored from a saved registry result."""
+    __slots__ = ("id", "properties")
+
+    def __init__(self, product_id, properties):
+        self.id = product_id
+        self.properties = properties
+
+
+def _saved_results_path(saved_as):
+    """Returns the file a query's saved result lives in."""
+    return os.path.join(REGISTRY_RESULTS_DIR, re.sub(r"[^A-Za-z0-9_.-]", "_", saved_as) + ".json")
+
+
+def _save_results(saved_as, products):
+    """Writes one query's products to its saved-results file.
+
+    A failed write only means no fallback copy next time, so it's reported
+    and the run goes on.
+    """
+    try:
+        os.makedirs(REGISTRY_RESULTS_DIR, exist_ok=True)
+        with open(_saved_results_path(saved_as), "w", encoding="utf-8") as fh:
+            json.dump([{"id": product.id, "properties": product.properties} for product in products], fh)
+    except OSError as exc:
+        print(f"  NOTE: couldn't save a fallback copy of {saved_as} ({exc}).")
+
+
+def _load_results(saved_as):
+    """Returns (products, date saved) from a query's saved-results file, or None."""
+    path = _saved_results_path(saved_as)
+    try:
+        with open(path, encoding="utf-8") as fh:
+            data = json.load(fh)
+    except (OSError, ValueError):
+        return None
+    saved = datetime.datetime.fromtimestamp(os.path.getmtime(path)).strftime("%Y-%m-%d")
+    return [SavedProduct(item["id"], item["properties"]) for item in data], saved
+
+
+def fetch_products(make_query, fields, saved_as=None):
     """Runs a peppi product query asking only for the given properties.
 
     A product without one of the requested properties comes back with it set
@@ -172,20 +243,56 @@ def fetch_products(query, fields):
     the pipeline sees a missing property as absent, the same as it would
     without a field list.
 
+    A failing request is retried (REGISTRY_ATTEMPTS in all). With saved_as,
+    each successful result is saved to REGISTRY_RESULTS_DIR, and if every
+    attempt fails, the last saved result is used instead, with a one-line
+    note saying so.
+
     Args:
-        query (peppi Products): an unrun query, e.g.
-              pep.Products(client).has_target(lid).bundles().
+        make_query (callable): returns a new unrun query each time it's
+              called, e.g. lambda: pep.Products(client).has_target(lid).bundles()
+              - a fresh query per attempt, so a retry never resumes a
+              half-read one.
         fields (list of strings): property names to ask for, e.g.
               BUNDLE_QUERY_FIELDS.
+        saved_as (string or None): name for this query's saved result, e.g.
+              "venus_bundles"; None to neither save nor fall back.
 
-    Returns (list of peppi Products):
+    Raises:
+        RegistryUnavailable: if every attempt fails and there's no saved
+              result to use.
+
+    Returns (list of peppi Products or SavedProducts):
         every product the query returns.
     """
-    products = list(query.fields(fields))
+    for attempt in range(1, REGISTRY_ATTEMPTS + 1):
+        try:
+            products = list(make_query().fields(fields))
+            break
+        except Exception as exc:
+            reason = _first_line(exc)
+            if attempt < REGISTRY_ATTEMPTS:
+                wait = REGISTRY_RETRY_WAIT_SECS * attempt
+                print(f"  (PDS registry not responding: {reason}; retrying in {wait}s)")
+                time.sleep(wait)
+                continue
+            saved = _load_results(saved_as) if saved_as else None
+            if saved is None:
+                raise RegistryUnavailable(
+                    f"the PDS registry didn't respond after {REGISTRY_ATTEMPTS} tries ({reason}), "
+                    f"and there's no saved copy of this query to use instead. This is a problem "
+                    f"on the registry's side; try again later."
+                ) from exc
+            products, saved_date = saved
+            print(f"  NOTE: PDS registry not responding ({reason}); using the results saved "
+                  f"{saved_date} for {saved_as}.")
+            return products
     for product in products:
         props = product.properties
         for key in [key for key, value in props.items() if value in (NULL_VALUE, [NULL_VALUE])]:
             del props[key]
+    if saved_as:
+        _save_results(saved_as, products)
     return products
 
 
@@ -194,7 +301,8 @@ def bundles_by_lid(client, lids):
 
     For bundles that a target's own bundle query doesn't return - e.g. the
     parent bundle of a collection on that target, when the bundle lists other
-    targets or none.
+    targets or none. A bundle that can't be fetched (registry down, nothing
+    saved) is reported and treated as missing, rather than stopping the run.
 
     Args:
         client (peppi PDSRegistryClient).
@@ -208,7 +316,12 @@ def bundles_by_lid(client, lids):
     found = []
     missing = []
     for lid in sorted(lids):
-        products = fetch_products(pep.Products(client).filter(f'lid eq "{lid}"'), BUNDLE_QUERY_FIELDS)
+        try:
+            products = fetch_products(lambda: pep.Products(client).filter(f'lid eq "{lid}"'),
+                                      BUNDLE_QUERY_FIELDS, saved_as=f"bundle_{lid}")
+        except RegistryUnavailable as exc:
+            print(f"  NOTE: couldn't fetch parent bundle {lid}: {exc}")
+            products = []
         if products:
             found.extend(products)
         else:
@@ -495,8 +608,7 @@ def _warn_using_old_cache(path, exc):
         exc (Exception): the error the live refresh raised.
     """
     saved = datetime.datetime.fromtimestamp(os.path.getmtime(path)).strftime("%Y-%m-%d")
-    reason = (str(exc).splitlines() or [type(exc).__name__])[0]
-    print(f"WARNING: could not refresh {os.path.basename(path)} ({reason}); "
+    print(f"  NOTE: could not refresh {os.path.basename(path)} ({_first_line(exc)}); "
           f"using the copy saved {saved}.")
 
 
@@ -530,10 +642,14 @@ def _refresh_context_product_caches(client, force_refresh=False):
     # here - only the fetch is inside the try, so a bug in the processing
     # below still raises.
     try:
-        all_contexts = fetch_products(pep.Products(client).contexts(), CONTEXT_QUERY_FIELDS)
+        all_contexts = fetch_products(lambda: pep.Products(client).contexts(), CONTEXT_QUERY_FIELDS)
     except Exception as exc:
         if _load_context_cache(allow_stale=True) is None or _load_investigation_cache(allow_stale=True) is None:
-            raise
+            raise RegistryUnavailable(
+                f"couldn't download the PDS context catalog (instrument and mission names) "
+                f"from the registry ({_first_line(exc)}), and there's no saved copy to use "
+                f"instead. This is a problem on the registry's side; try again later."
+            ) from exc
         _warn_using_old_cache(CONTEXT_CACHE_PATH, exc)
         _warn_using_old_cache(INVESTIGATION_CACHE_PATH, exc)
         return
@@ -667,7 +783,11 @@ def build_context(force_refresh=False):
     except Exception as exc:
         targets = _load_context_targets_cache(allow_stale=True)
         if targets is None:
-            raise
+            raise RegistryUnavailable(
+                f"couldn't download the PDS target catalog from the registry "
+                f"({_first_line(exc)}), and there's no saved copy to use instead. This is "
+                f"a problem on the registry's side; try again later."
+            ) from exc
         _warn_using_old_cache(CONTEXT_TARGETS_CACHE_PATH, exc)
         return CachedContext(targets)
     # dict: attribute name (str) -> {lid, name, description, type} (the shape

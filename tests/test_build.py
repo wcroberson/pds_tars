@@ -5,6 +5,7 @@ All tests are self-contained — no network calls, no file I/O.
 
 import sys
 from collections import defaultdict
+from types import SimpleNamespace
 
 import pytest
 from pds_tars import build
@@ -72,17 +73,18 @@ def test_instruments_without_start_date_skipped():
 # ── build_table_data(): section_tables structure and category assignment ───────
 
 def test_clouds_label_lands_in_atmosphere_clouds():
-    """End-to-end: a "Clouds" science sorting label must put the instrument in
-    section_tables['Atmosphere']['Clouds'] at the entry's start year.
+    """End-to-end: an "Atmosphere:Clouds" science sorting label must put the
+    instrument in section_tables['Atmosphere']['Clouds'] at the entry's start
+    year.
 
     This is the integration check for the full chain:
-      label -> SECTION_OF_CATEGORY -> section_tables entry.
+      label -> split_label() -> section_tables entry.
     """
     by_instrument = {
         "Nephelometer (NEP)": {
             "NEP Raw": _col(single=True, proc=["Raw"], wl=None,
                             inv=["GALILEO PROBE"], start="1995-01-01T00:00:00Z",
-                            labels=["Clouds"]),
+                            labels=["Atmosphere:Clouds"]),
         }
     }
     table_data = build_table_data(by_instrument)
@@ -96,12 +98,12 @@ def test_clouds_label_lands_in_atmosphere_clouds():
     )
 
 def test_em_instrument_does_not_appear_in_atmosphere():
-    """An instrument labeled only "UV" must not land in any Atmosphere row."""
+    """An instrument labeled only "Electromagnetic Spectrum:UV" must not land in any Atmosphere row."""
     by_instrument = {
         "Ultraviolet Spectrometer (UVS)": {
             "UVS Raw": _col(single=True, proc=["Raw"], wl=["Ultraviolet"],
                             inv=["Voyager 1"], start="1979-01-01T00:00:00Z",
-                            labels=["UV"]),
+                            labels=["Electromagnetic Spectrum:UV"]),
         }
     }
     section_tables = build_table_data(by_instrument).section_tables
@@ -116,10 +118,10 @@ def test_category_collection_counts_scoped_per_category_not_instrument_total():
     """
     by_instrument = {
         "Test Multi (TM)": {
-            "TM UV 1": _col(single=True, proc=["Raw"], wl=None, labels=["UV"]),
+            "TM UV 1": _col(single=True, proc=["Raw"], wl=None, labels=["Electromagnetic Spectrum:UV"]),
             "TM UV 2": _col(single=True, proc=["Raw"], wl=None,
-                            start="2001-01-01T00:00:00Z", labels=["UV"]),
-            "TM IR":   _col(single=True, proc=["Raw"], wl=None, labels=["IR"]),
+                            start="2001-01-01T00:00:00Z", labels=["Electromagnetic Spectrum:UV"]),
+            "TM IR":   _col(single=True, proc=["Raw"], wl=None, labels=["Electromagnetic Spectrum:IR"]),
         }
     }
     table_data = build_table_data(by_instrument)
@@ -128,18 +130,62 @@ def test_category_collection_counts_scoped_per_category_not_instrument_total():
     assert category_collection_counts["UV"][abbr] == 2
     assert category_collection_counts["IR"][abbr] == 1
 
-def test_unknown_label_is_skipped_with_warning(capsys):
-    """A label that isn't a category in pipeline_rules.yaml has no row to go
-    in - it must be skipped and reported, not crash the build or invent a row."""
+def test_sections_and_rows_come_from_the_labels():
+    """A section and category no list names still get a row: the labels are
+    the vocabulary, display_order only orders them."""
     by_instrument = {
         "Test Probe (TP)": {
-            "TP": _col(single=True, proc=["Raw"], wl=None, labels=["Winds", "Not A Category"]),
+            "TP": _col(single=True, proc=["Raw"], wl=None,
+                       labels=["Atmosphere:Winds", "New Section:New Category"]),
         }
     }
     section_tables = build_table_data(by_instrument).section_tables
     assert "Winds" in section_tables["Atmosphere"]
-    assert all("Not A Category" not in table for table in section_tables.values())
-    assert "Not A Category" in capsys.readouterr().out
+    assert "New Category" in section_tables["New Section"]
+    assert list(section_tables) == ["Atmosphere", "New Section"], (
+        "display_order sections come first, unlisted ones after"
+    )
+
+def test_label_with_no_section_is_shown_with_warning(capsys):
+    """A label missing its "Section:" part must not crash or vanish - it goes
+    under UNSECTIONED and is reported."""
+    by_instrument = {"Test Probe (TP)": {"TP": _col(single=True, proc=["Raw"], wl=None, labels=["Winds"])}}
+    section_tables = build_table_data(by_instrument).section_tables
+    assert "Winds" in section_tables[build.UNSECTIONED]
+    assert "'Winds' names no section" in capsys.readouterr().out
+
+def test_technique_labels_become_tags_not_rows():
+    """"Technique:..." labels tag the instrument's chips and make no rows."""
+    by_instrument = {
+        "Test Camera (TC)": {
+            "TC 1": _col(single=True, proc=["Raw"], wl=None,
+                         labels=["Electromagnetic Spectrum:Visual", "Technique:Imaging"]),
+            "TC 2": _col(single=True, proc=["Raw"], wl=None, labels=["Technique:Imaging"]),
+        }
+    }
+    table_data = build_table_data(by_instrument)
+    abbr = table_data.name_to_abbr["Test Camera (TC)"]
+    assert "Technique" not in table_data.section_tables
+    assert table_data.abbr_to_techniques[abbr] == {"Imaging"}
+    assert table_data.abbr_to_technique_counts[abbr] == {"Imaging": 2}
+
+def test_instrument_naming_two_missions_warns_instead_of_failing(capsys):
+    """Two real missions on one instrument must not stop the build."""
+    investigation_cache = {
+        "galileo": {"name": "Galileo", "type": "Mission", "description": "",
+                    "start_date": "1989-10-18", "stop_date": "2003-09-21"},
+        "voyager": {"name": "Voyager", "type": "Mission", "description": "",
+                    "start_date": "1977-08-20", "stop_date": ""},
+    }
+    by_instrument = {
+        "Test Probe (TP)": {
+            "A": _col(single=True, proc=["Raw"], wl=None, inv=["Galileo"], labels=["Atmosphere:Winds"]),
+            "B": _col(single=True, proc=["Raw"], wl=None, inv=["Voyager"], labels=["Atmosphere:Winds"]),
+        }
+    }
+    table_data = build_table_data(by_instrument, investigation_cache=investigation_cache)
+    assert "Winds" in table_data.section_tables["Atmosphere"]
+    assert "more than one mission" in capsys.readouterr().out
 
 def test_entry_with_no_labels_gives_no_rows():
     """A bundle whose sorting pairs don't name an instrument sorts nothing for it."""
@@ -195,24 +241,17 @@ _IRTF_FIELDS = {
 }
 _IRTF_LABELS = {"urn:nasa:pds:context:telescope:irtf.3m0": ["IR"]}
 
-def test_no_instrument_product_listed_under_its_observing_system_when_asked():
-    """With no_instrument=observatory, a bundle naming no instrument goes under
-    its observing system, sorted by the pair on its telescope LID - and the
-    telescope LID is never mistaken for an instrument."""
+def test_no_instrument_product_listed_under_its_observing_system():
+    """A bundle naming no instrument goes under its observing system, sorted by
+    the pair on its telescope LID - and the telescope LID is never mistaken
+    for an instrument."""
     by_instrument = defaultdict(dict)
     build._add_instrument_entries(
         by_instrument, "Bundle", _IRTF_FIELDS, [], _IRTF_LABELS, {}, set(), set(),
-        no_instrument=build.NO_INSTRUMENT_OBSERVATORY,
     )
     assert list(by_instrument) == ["NASA InfraRed Telescope Facility (IRTF) (no instrument)"]
     entry = by_instrument["NASA InfraRed Telescope Facility (IRTF) (no instrument)"]["Bundle"]
     assert entry["science_sorting_labels"] == ["IR"]
-
-def test_no_instrument_product_unsorted_by_default():
-    """By default a bundle naming no instrument gets an unsorted entry."""
-    by_instrument = defaultdict(dict)
-    build._add_instrument_entries(by_instrument, "Bundle", _IRTF_FIELDS, [], _IRTF_LABELS, {}, set(), set())
-    assert by_instrument["(no instrument)"]["Bundle"]["science_sorting_labels"] == []
 
 def test_observatory_entry_name_falls_back_to_investigation():
     fields = dict(_IRTF_FIELDS, observing_system=None)
@@ -250,7 +289,8 @@ def test_main_isolates_per_target_failures_and_exits_nonzero(monkeypatch, capsys
     """One bad target in a multi-target run must not block the others, but the
     process must still exit non-zero so a calling script can detect the
     partial failure."""
-    monkeypatch.setattr(build, "build_context", lambda force_refresh=False: object())
+    targets = SimpleNamespace(VENUS=None, BADTARGET=None, JUPITER=None)
+    monkeypatch.setattr(build, "build_context", lambda force_refresh=False: SimpleNamespace(TARGETS=targets))
     monkeypatch.setattr(build, "build_instrument_name_cache",
                         lambda client, force_refresh=False: ({}, set(), set()))
     monkeypatch.setattr(build, "build_investigation_cache",
@@ -277,3 +317,28 @@ def test_main_isolates_per_target_failures_and_exits_nonzero(monkeypatch, capsys
     )
     assert "BADTARGET" in capsys.readouterr().err
 
+
+def test_unknown_target_refreshes_the_target_catalog_once(monkeypatch):
+    """A target missing from the saved catalog may be newly archived: the
+    catalog is refreshed once before the name is called unknown."""
+    refreshes = []
+
+    def fake_build_context(force_refresh=False):
+        refreshes.append(force_refresh)
+        names = {"VENUS": None} if not force_refresh else {"VENUS": None, "NEWMOON": None}
+        return SimpleNamespace(TARGETS=SimpleNamespace(**names))
+
+    monkeypatch.setattr(build, "build_context", fake_build_context)
+    monkeypatch.setattr(build, "build_instrument_name_cache",
+                        lambda client, force_refresh=False: ({}, set(), set()))
+    monkeypatch.setattr(build, "build_investigation_cache",
+                        lambda client, force_refresh=False: {})
+    monkeypatch.setattr(build.pep, "PDSRegistryClient", lambda: object())
+    monkeypatch.setattr(build, "_apply_registry_timeout", lambda client, timeout_secs=None: None)
+    seen = []
+    monkeypatch.setattr(build, "_process_target",
+                        lambda target_name, context, *args, **kwargs: seen.append(hasattr(context.TARGETS, target_name)))
+
+    assert build.run_pipeline(["NEWMOON"]) == []
+    assert refreshes == [False, True]
+    assert seen == [True]

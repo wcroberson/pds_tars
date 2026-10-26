@@ -4,9 +4,9 @@ Builds the per-body "integrated archive" pages for the PDS Atmospheres Node
 website (Mercury, Venus, Mars, Jupiter, Io, Europa, Ganymede, Callisto,
 Saturn, Titan, Uranus, Neptune, Pluto) directly from the PDS registry,
 instead of hand-maintaining them. Each target gets a standardized table of
-instruments × observation years, organized into the node's locked
-category vocabulary (Electromagnetic Spectrum, Particles & Fields,
-Atmosphere, Surface).
+instruments × observation years, organized into sections and categories
+(e.g. Electromagnetic Spectrum > IR, Atmosphere > Clouds) that come from
+science sorting labels on the PDS bundle labels themselves.
 
 This directory is self-contained — everything needed to install, run, and
 test the pipeline lives here. All commands below assume you're standing
@@ -72,7 +72,9 @@ Each run writes into `tables/<target>/`:
 |---|---|
 | `--node NODE` | Restrict to one PDS node (`ATM`, `PPI`, `GEO`, `NAIF`, ...). Default is `ATM`. Pass `ALL` to include every node — output filenames get an `_allnodes` (or `_<node>`) suffix so they never collide with the default run. |
 | `--diagnostic` | Also write a diagnostic HTML table: a plain interactive category × year table with checkboxes, per-instrument notes, and a full collection detail view per instrument. Not part of the shipped product — useful for auditing what a target's data actually looks like. |
-| `--refresh-contexts` | Force a live re-fetch of the registry's context-product catalog (instruments, spacecraft, investigations, targets) instead of using the on-disk cache. Can take several minutes; the catalog rarely changes, so this is rarely needed. |
+| `--years {collection,bundle}` | Where each row's years come from: the instrument's science collections inside each bundle (`collection`, the default), or each bundle's own time range (`bundle`). Many bundle labels carry no time range, so `bundle` puts their data under "No Date". |
+| `--targets-from {collection,bundle}` | Which targets' tables an instrument appears on: those its science collections list (`collection`, the default), or those its bundle lists (`bundle`). With `collection`, a collection's parent bundle is read for the sorting labels even if the bundle doesn't list that target. |
+| `--refresh-contexts` | Force a live re-fetch of the registry's context-product catalog (instruments, spacecraft, investigations, targets) instead of using the on-disk cache. Can take several minutes; the catalog rarely changes, and a target missing from the saved catalog triggers a refresh on its own, so this is rarely needed. |
 
 Example:
 
@@ -83,18 +85,42 @@ pipeline-build SATURN --node ALL --diagnostic
 
 ## How categorization works
 
-Every instrument's collections get matched against rules in
-`pipeline_rules.yaml` — the single file that controls which rows
-exist, rules for sorting instruments into each, mission type/landing-page
-metadata, and instrument name overrides. Most rules match on PDS4 fields
-the registry already provides (`wavelength_range`, `discipline`,
-`facet1`/`facet2`, free-text `description`); a documented
-`hardcoded_instruments` escape hatch exists for the case
-where an instrument can't be sorted by its PDS metadata alone.
+Instruments are sorted by **science sorting labels** carried on PDS4 bundle
+labels (a sorting dictionary with the namespace `science_category_sorting`).
+Each bundle lists pairs of one `instrument_lid` and one
+`science_sorting_label`, and each label is written `Section:Category`:
 
-To add or change a category or sorting rule, edit `pipeline_rules.yaml` directly — no code
-changes needed. See the comments at the top of that file for the rule
-schema.
+- `Atmosphere:Clouds`, `Electromagnetic Spectrum:IR`, ... — the instrument
+  gets a row in that section of the table. Sections and categories are
+  whatever the labels say; the sorting dictionary is their master list.
+- `Technique:Imaging`, `Technique:Spectroscopy`, ... — no row; these become
+  the instrument's technique tags, used by the pretty table's technique
+  filter.
+
+An instrument with several labels on a bundle has one pair per label. The
+pairs apply to that bundle only, so an instrument can be sorted differently
+in different bundles.
+
+Data whose label names no instrument (e.g. ground-based photometry that names
+only an observatory and telescope) is listed under its observing system's
+name, e.g. "NASA InfraRed Telescope Facility (IRTF) (no instrument)", or its
+investigation's name if it gives no observing system. Its pairs use the
+telescope (or facility) LID in place of an instrument LID.
+
+`pipeline_rules.yaml` no longer decides categories. It holds only:
+
+- `display_order` — the order sections and rows appear in. Anything the
+  labels use that isn't listed still appears, after the listed ones,
+  alphabetically.
+- mission types and landing pages (`mission_type_display`, `mission_types`,
+  `mission_landing_pages`), keyed by PDS investigation name;
+- per-instrument fixes (`omitted_instruments`, `instrument_type_overrides`,
+  `display_name_overrides`, `collection_date_overrides`).
+
+**This branch reads the sorting pairs from the registry only.** Until
+bundle labels in the registry carry them, every bundle has no pairs and the
+tables have no rows (each run prints how many bundles carry pairs). The
+`bundle-sorting` branch fills them in from a temporary CSV for testing.
 
 ## Layout
 
@@ -102,11 +128,11 @@ schema.
 pyproject.toml         package metadata, dependencies, pipeline-build entry point
 src/pds_tars/
     build.py            entry point — CLI, registry queries, orchestration
-    registry.py          PDS registry querying + on-disk caching
-    rule_engine.py        category matching against pipeline_rules.yaml
-    schema.py            pipeline_rules.yaml loader + row-ordering helpers
+    registry.py          PDS registry querying, saved results + on-disk caching
+    rule_engine.py        mission type / landing page lookups from pipeline_rules.yaml
+    schema.py            pipeline_rules.yaml loader, "Section:Category" parsing, ordering
     render_html.py        HTML table generation (pretty/basic/diagnostic)
-    pipeline_rules.yaml    category vocabulary, detection rules, mission metadata
+    pipeline_rules.yaml    display order, mission metadata, per-instrument overrides
 background_images/    per-target background images for the pretty table
 cache/                on-disk registry-catalog caches (see below)
 tables/                output, one subdirectory per target
@@ -123,6 +149,36 @@ persisting between runs:
   `context_investigations_cache.json` — the registry's context-product
   catalog (instruments, spacecraft, targets, investigations). Refreshed
   automatically after 7 days, or immediately with `--refresh-contexts`.
+- `registry_results/` — the last successful result of each per-target
+  query (a target's bundles and collections, and parent bundles fetched by
+  LID). Overwritten on every successful run; used only as a fallback. Not
+  committed (see `.gitignore`), so a fresh clone has none until its first
+  successful run, and the repo never carries stale query results.
+
+Every registry query asks only for the fields the pipeline reads (peppi's
+`.fields()`), which keeps requests small.
+
+## When the registry is down
+
+The pipeline is meant to run unattended, so it falls back rather than
+failing wherever it can, and says so in one line:
+
+- A failing registry request is retried twice (after 10 s, then 20 s).
+- If it still fails, the saved copy is used: the context caches, or the
+  query's saved result in `cache/registry_results/`, with a `NOTE:` line
+  giving the date it was saved.
+- Only when there is no saved copy at all does a target fail, with the
+  reason (registry not responding) and no traceback; other targets still
+  run. A run with no context caches and no registry stops before any
+  target, saying why.
+- A single product the registry returns in an unexpected shape, or a
+  bundle with mismatched sorting pairs, is skipped with a `WARNING:` line;
+  the rest of the target still builds.
+- An unknown target name triggers one refresh of the target catalog (in
+  case it's newly archived) before it's reported as unknown.
+
+The exit code is non-zero if any target failed. An unexpected error is
+reported as a likely bug, with a traceback for reporting it.
 
 ## Tests
 
@@ -132,8 +188,9 @@ persisting between runs:
 pytest tests/
 ```
 
-All tests are self-contained (no network calls, no file I/O) — they exercise
-the pure category-matching and table-building functions directly.
+All tests are self-contained (no network calls; the few that touch files use
+pytest's temporary directories) — they exercise the label parsing,
+table-building, caching and fallback functions directly.
 
 ## Integrating into an existing website
 
@@ -167,8 +224,8 @@ into a page that has other content on it.
 
 ## A note on live-data behavior
 
-This pipeline queries the live PDS registry on every run (aside from the
-caches above) — output can change as new data gets archived or migrated
+This pipeline queries the live PDS registry on every run (falling back to the
+saved copies above only when it doesn't respond) — output can change as new data gets archived or migrated
 into PDS4, and a fresh run is the only way to pick that up. There is
 currently no scheduled/automated rebuild; someone needs to run
 `pipeline-build` and redeploy the output when a refresh is wanted.

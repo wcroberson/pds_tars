@@ -483,7 +483,7 @@ def test_fetch_products_asks_for_fields_and_drops_null_values():
             return [FakeProduct({START_KEY: ["null"], STOP_KEY: ["2001-01-01T00:00:00Z"]})]
 
     query = FakeQuery()
-    products = fetch_products(query, [START_KEY, STOP_KEY])
+    products = fetch_products(lambda: query, [START_KEY, STOP_KEY])
     assert query.asked == [START_KEY, STOP_KEY]
     assert products[0].properties == {STOP_KEY: ["2001-01-01T00:00:00Z"]}
 
@@ -501,6 +501,12 @@ import json
 import os
 
 from pds_tars import registry
+
+
+@pytest.fixture(autouse=True)
+def _no_retry_wait(monkeypatch):
+    """Registry retries wait between attempts; tests of failures shouldn't."""
+    monkeypatch.setattr(registry, "REGISTRY_RETRY_WAIT_SECS", 0)
 
 
 def _write_old_json(path, data):
@@ -533,14 +539,14 @@ def test_build_context_uses_old_targets_cache_when_refresh_fails(tmp_path, monke
     context = registry.build_context()
 
     assert context.TARGETS.VENUS.lid == "urn:nasa:pds:context:target:planet.venus"
-    assert "WARNING: could not refresh context_targets_cache.json ((503))" in capsys.readouterr().out
+    assert "NOTE: could not refresh context_targets_cache.json ((503))" in capsys.readouterr().out
 
 
 def test_build_context_raises_when_refresh_fails_and_no_cache(tmp_path, monkeypatch):
     monkeypatch.setattr(registry, "CONTEXT_TARGETS_CACHE_PATH", str(tmp_path / "missing.json"))
     monkeypatch.setattr(registry.pep, "Context", _failing_registry_call)
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(registry.RegistryUnavailable):
         registry.build_context()
 
 
@@ -562,8 +568,8 @@ def test_context_product_caches_use_old_copies_when_refresh_fails(tmp_path, monk
     assert spacecraft_ids == {"go"} and facility_ids == {"relab"}
     assert investigations["galileo"]["name"] == "Galileo"
     out = capsys.readouterr().out
-    assert "WARNING: could not refresh context_cache.json" in out
-    assert "WARNING: could not refresh context_investigations_cache.json" in out
+    assert "NOTE: could not refresh context_cache.json" in out
+    assert "NOTE: could not refresh context_investigations_cache.json" in out
 
 
 def test_context_product_caches_raise_when_refresh_fails_and_a_cache_is_missing(tmp_path, monkeypatch):
@@ -573,5 +579,51 @@ def test_context_product_caches_raise_when_refresh_fails_and_a_cache_is_missing(
     monkeypatch.setattr(registry, "INVESTIGATION_CACHE_PATH", str(tmp_path / "missing.json"))
     monkeypatch.setattr(registry.pep, "Products", _FailingProducts)
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(registry.RegistryUnavailable):
         registry.build_instrument_name_cache(client=object())
+
+
+# ── fetch_products(): retries and saved results ──────────────────────────────
+
+class _Query:
+    """A peppi query stand-in: fails `failures` times, then returns products."""
+
+    def __init__(self, failures, products):
+        self.failures = failures
+        self.products = products
+        self.calls = 0
+
+    def make(self):
+        return self
+
+    def fields(self, fields):
+        self.calls += 1
+        if self.calls <= self.failures:
+            raise RuntimeError("(504)\nReason: Gateway Time-out")
+        return self.products
+
+
+def test_fetch_products_retries_a_failing_request(tmp_path, monkeypatch):
+    monkeypatch.setattr(registry, "REGISTRY_RESULTS_DIR", str(tmp_path))
+    query = _Query(failures=2, products=[registry.SavedProduct("urn:x::1.0", {START_KEY: ["2000"]})])
+    products = registry.fetch_products(query.make, [START_KEY])
+    assert query.calls == 3
+    assert products[0].id == "urn:x::1.0"
+
+
+def test_fetch_products_falls_back_to_the_saved_result(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(registry, "REGISTRY_RESULTS_DIR", str(tmp_path))
+    ok = _Query(failures=0, products=[registry.SavedProduct("urn:x::1.0", {START_KEY: ["2000"]})])
+    registry.fetch_products(ok.make, [START_KEY], saved_as="venus_bundles")
+
+    down = _Query(failures=99, products=[])
+    products = registry.fetch_products(down.make, [START_KEY], saved_as="venus_bundles")
+    assert [(product.id, product.properties) for product in products] == [("urn:x::1.0", {START_KEY: ["2000"]})]
+    assert "using the results saved" in capsys.readouterr().out
+
+
+def test_fetch_products_explains_when_nothing_is_saved(tmp_path, monkeypatch):
+    monkeypatch.setattr(registry, "REGISTRY_RESULTS_DIR", str(tmp_path))
+    down = _Query(failures=99, products=[])
+    with pytest.raises(registry.RegistryUnavailable, match="registry's side"):
+        registry.fetch_products(down.make, [START_KEY], saved_as="venus_bundles")
