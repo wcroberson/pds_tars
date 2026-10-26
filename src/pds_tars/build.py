@@ -6,9 +6,9 @@ sorting pairs (one instrument LID + one category label per pair) to place its
 instruments in categories, and writes the category × observation-year tables
 to pds_tars/tables/.
 
-Years come from each bundle's own Time_Coordinates by default. With
---years collection, they come instead from the instrument's science
-collections inside each bundle, still sorted by that bundle's pairs.
+By default, years come from the instrument's science collections inside
+each bundle, sorted by that bundle's pairs. With --years bundle, they come
+instead from each bundle's own Time_Coordinates.
 
 Every target gets its own subdirectory (tables/<target>/, lowercased) holding
 both node variants together. Filenames are prefixed with <target> plus a node
@@ -28,10 +28,10 @@ the PDS registry recognizes as a context target. There's no planet+moons
 "system" grouping; a moon with its own ATM-node data (e.g. Io, Titan) is
 built and shipped as its own separate target like any planet.
 
-An instrument appears on a target's table when its bundle lists that target
-by default. With --targets-from collection, it appears when one of its
-science collections lists the target instead, and the collection's parent
-bundle is read for the pairs whatever targets the bundle lists.
+By default, an instrument appears on a target's table when one of its
+science collections lists that target, and the collection's parent bundle is
+read for the pairs whatever targets the bundle lists. With --targets-from
+bundle, it appears when its bundle lists the target instead.
 
 A bundle or collection naming no instrument is left out by default. With
 --no-instrument observatory, it's listed under its observing system (or
@@ -750,7 +750,7 @@ def _add_instrument_entries(by_instrument, title, fields, inst_lids, labels,
 def _process_target(target_name, context, client, node_filter, node_suffix,
                     inst_name_cache, spacecraft_ids, facility_ids, investigation_cache,
                     omitted_lower, peppi_name_overrides, diagnostic,
-                    years_from=YEARS_FROM_BUNDLE, targets_from=TARGETS_FROM_BUNDLE,
+                    years_from=YEARS_FROM_COLLECTION, targets_from=TARGETS_FROM_COLLECTION,
                     no_instrument=NO_INSTRUMENT_DROP):
     """Queries, categorizes, and writes output for one target.
 
@@ -1079,7 +1079,7 @@ def _process_target(target_name, context, client, node_filter, node_suffix,
 # ── Pipeline orchestration ──────────────────────────────────────────────────────
 
 def run_pipeline(targets, diagnostic=False, node="ATM", refresh_contexts=False,
-                 years_from=YEARS_FROM_BUNDLE, targets_from=TARGETS_FROM_BUNDLE,
+                 years_from=YEARS_FROM_COLLECTION, targets_from=TARGETS_FROM_COLLECTION,
                  no_instrument=NO_INSTRUMENT_DROP):
     """Runs the full pipeline for one or more targets.
 
@@ -1114,10 +1114,10 @@ def run_pipeline(targets, diagnostic=False, node="ATM", refresh_contexts=False,
               catalog (instruments, spacecraft, etc.) instead of using the
               on-disk cache in pds_tars/cache/context_cache.json.
               This re-downloads the full catalog and can take several minutes.
-        years_from (string): YEARS_FROM_BUNDLE (default) or
-              YEARS_FROM_COLLECTION - see _process_target().
-        targets_from (string): TARGETS_FROM_BUNDLE (default) or
-              TARGETS_FROM_COLLECTION - see _process_target().
+        years_from (string): YEARS_FROM_COLLECTION (default) or
+              YEARS_FROM_BUNDLE - see _process_target().
+        targets_from (string): TARGETS_FROM_COLLECTION (default) or
+              TARGETS_FROM_BUNDLE - see _process_target().
         no_instrument (string): NO_INSTRUMENT_DROP (default) or
               NO_INSTRUMENT_OBSERVATORY - see _add_instrument_entries().
 
@@ -1210,21 +1210,21 @@ def main():
     parser.add_argument(
         "--years",
         choices=[YEARS_FROM_BUNDLE, YEARS_FROM_COLLECTION],
-        default=YEARS_FROM_BUNDLE,
-        help="Where the table's years come from: each bundle's own time range "
-             "(bundle, the default), or the time ranges of each instrument's "
-             "science collections inside the bundle (collection). Categories "
-             "come from the bundle's science sorting pairs either way.",
+        default=YEARS_FROM_COLLECTION,
+        help="Where the table's years come from: the time ranges of each "
+             "instrument's science collections inside the bundle (collection, "
+             "the default), or each bundle's own time range (bundle). "
+             "Categories come from the bundle's science sorting pairs either way.",
     )
     parser.add_argument(
         "--targets-from",
         choices=[TARGETS_FROM_BUNDLE, TARGETS_FROM_COLLECTION],
-        default=TARGETS_FROM_BUNDLE,
-        help="Which targets' tables an instrument appears on: those its bundle "
-             "lists (bundle, the default), or those its science collections "
-             "inside the bundle list (collection). With collection, each "
-             "collection's parent bundle is read for the sorting pairs even "
-             "when that bundle doesn't list the target.",
+        default=TARGETS_FROM_COLLECTION,
+        help="Which targets' tables an instrument appears on: those its "
+             "science collections inside the bundle list (collection, the "
+             "default), or those its bundle lists (bundle). With collection, "
+             "each collection's parent bundle is read for the sorting pairs "
+             "even when that bundle doesn't list the target.",
     )
     parser.add_argument(
         "--no-instrument",
